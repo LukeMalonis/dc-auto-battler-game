@@ -1,0 +1,10 @@
+{
+    "resolution": [
+        2048,
+        1080
+    ],
+    "fullscreen": true,
+    "borderless": false,
+    "music_volume": 0.7,
+    "sfx_volume": 0.8
+}
