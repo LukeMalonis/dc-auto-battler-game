@@ -935,13 +935,23 @@ def main():
                     # Start dragging
                     if game_state == GameState.SINGLE_PLAYER:
                         # Check bench for drag start
-                        bench_width = GameConstants.BENCH_SLOTS * LARGE_BENCH_UNIT_SIZE
+                        bench_slots = GameConstants.BENCH_SLOTS
+                        shop_slots = GameConstants.SHOP_SLOTS
+                        shop_card_size = LARGE_SHOP_UNIT_SIZE
+                        card_gap = 20
+                        shop_width = shop_slots * shop_card_size + (shop_slots - 1) * card_gap
+                        bench_card_size = (shop_width - (bench_slots - 1) * card_gap) // bench_slots
+                        bench_width = bench_slots * bench_card_size + (bench_slots - 1) * card_gap
                         bench_x = (screen_width - bench_width) // 2
-                        bench_y = screen_height - 320
+                        bench_y = screen_height - shop_card_size - bench_card_size - 80  # match draw_bench
 
-                        for i in range(GameConstants.BENCH_SLOTS):
-                            bench_rect = pygame.Rect(bench_x + i * LARGE_BENCH_UNIT_SIZE, bench_y,
-                                                     LARGE_BENCH_UNIT_SIZE - 4, LARGE_BENCH_UNIT_SIZE - 4)
+                        for i in range(bench_slots):
+                            bench_rect = pygame.Rect(
+                                bench_x + i * (bench_card_size + card_gap),
+                                bench_y,
+                                bench_card_size,
+                                bench_card_size
+                            )
                             if bench_rect.collidepoint(mouse_pos) and player.bench[i]:
                                 drag_state = DragState.FROM_BENCH
                                 drag_unit = player.bench[i]
@@ -971,13 +981,20 @@ def main():
 
                         # Check shop for drag start (AFTER bench/board checks)
                         if drag_state == DragState.NONE:
-                            shop_width = GameConstants.SHOP_SLOTS * LARGE_SHOP_UNIT_SIZE
+                            shop_slots = GameConstants.SHOP_SLOTS
+                            shop_card_size = LARGE_SHOP_UNIT_SIZE
+                            card_gap = 20
+                            shop_width = shop_slots * shop_card_size + (shop_slots - 1) * card_gap
                             shop_x = (screen_width - shop_width) // 2
-                            shop_y = screen_height - 180
+                            shop_y = screen_height - shop_card_size - 60  # match draw_shop
 
-                            for i in range(GameConstants.SHOP_SLOTS):
-                                shop_rect = pygame.Rect(shop_x + i * LARGE_SHOP_UNIT_SIZE, shop_y,
-                                                        LARGE_SHOP_UNIT_SIZE - 6, LARGE_SHOP_UNIT_SIZE - 6)
+                            for i in range(shop_slots):
+                                shop_rect = pygame.Rect(
+                                    shop_x + i * (shop_card_size + card_gap),
+                                    shop_y,
+                                    shop_card_size,
+                                    shop_card_size
+                                )
                                 if shop_rect.collidepoint(mouse_pos) and player.shop[i] is not None:
                                     drag_state = DragState.FROM_SHOP
                                     drag_unit = player.shop[i]
@@ -1005,13 +1022,17 @@ def main():
                                     player.buy_unit(drag_source_index)
                         else:
                             # This was a drag - only purchase if dragged outside shop area
-                            shop_width = GameConstants.SHOP_SLOTS * LARGE_SHOP_UNIT_SIZE
+                            shop_slots = GameConstants.SHOP_SLOTS
+                            shop_card_size = LARGE_SHOP_UNIT_SIZE
+                            card_gap = 20
+                            shop_width = shop_slots * shop_card_size + (shop_slots - 1) * card_gap
                             shop_x = (screen_width - shop_width) // 2
-                            shop_y = screen_height - 180
+                            shop_y = screen_height - shop_card_size - 60  # match draw_shop
 
                             # Check if mouse is outside shop area (actually dragged away)
-                            shop_area = pygame.Rect(shop_x - 15, shop_y - 15, shop_width + 30,
-                                                    LARGE_SHOP_UNIT_SIZE + 30)
+                            bg_padding = 50
+                            shop_area = pygame.Rect(shop_x - bg_padding, shop_y - bg_padding,
+                                                    shop_width + (bg_padding * 2), shop_card_size + (bg_padding * 2))
                             if not shop_area.collidepoint(mouse_pos):
                                 # Try to purchase the unit
                                 if player.can_combine_anywhere(drag_unit):
@@ -1035,9 +1056,15 @@ def main():
                             board_x = (screen_width - board_width) // 2
                             board_y = screen_height // 6
 
-                            bench_width = GameConstants.BENCH_SLOTS * LARGE_BENCH_UNIT_SIZE
+                            bench_slots = GameConstants.BENCH_SLOTS
+                            shop_slots = GameConstants.SHOP_SLOTS
+                            shop_card_size = LARGE_SHOP_UNIT_SIZE
+                            card_gap = 20
+                            shop_width = shop_slots * shop_card_size + (shop_slots - 1) * card_gap
+                            bench_card_size = (shop_width - (bench_slots - 1) * card_gap) // bench_slots
+                            bench_width = bench_slots * bench_card_size + (bench_slots - 1) * card_gap
                             bench_x = (screen_width - bench_width) // 2
-                            bench_y = screen_height - 320
+                            bench_y = screen_height - shop_card_size - bench_card_size - 80  # match draw_bench
 
                             # Check if dropped on board
                             board_dropped = False
@@ -1135,9 +1162,13 @@ def main():
 
                             if not board_dropped:
                                 # Check if dropped on bench
-                                for i in range(GameConstants.BENCH_SLOTS):
-                                    bench_rect = pygame.Rect(bench_x + i * LARGE_BENCH_UNIT_SIZE, bench_y,
-                                                             LARGE_BENCH_UNIT_SIZE - 4, LARGE_BENCH_UNIT_SIZE - 4)
+                                for i in range(bench_slots):
+                                    bench_rect = pygame.Rect(
+                                        bench_x + i * (bench_card_size + card_gap),
+                                        bench_y,
+                                        bench_card_size,
+                                        bench_card_size
+                                    )
                                     if bench_rect.collidepoint(mouse_pos):
                                         if drag_source_type == 'board':
                                             # Move from board to bench (swap if occupied)
@@ -1179,13 +1210,23 @@ def main():
                     player.refresh_shop()
                 elif event.key == pygame.K_s and game_state == GameState.SINGLE_PLAYER and drag_state == DragState.NONE:
                     # Sell unit under mouse (bench only for now)
-                    bench_width = GameConstants.BENCH_SLOTS * LARGE_BENCH_UNIT_SIZE
+                    bench_slots = GameConstants.BENCH_SLOTS
+                    shop_slots = GameConstants.SHOP_SLOTS
+                    shop_card_size = LARGE_SHOP_UNIT_SIZE
+                    card_gap = 20
+                    shop_width = shop_slots * shop_card_size + (shop_slots - 1) * card_gap
+                    bench_card_size = (shop_width - (bench_slots - 1) * card_gap) // bench_slots
+                    bench_width = bench_slots * bench_card_size + (bench_slots - 1) * card_gap
                     bench_x = (screen_width - bench_width) // 2
-                    bench_y = screen_height - 320
+                    bench_y = screen_height - shop_card_size - bench_card_size - 80  # match draw_bench
 
-                    for i in range(GameConstants.BENCH_SLOTS):
-                        bench_rect = pygame.Rect(bench_x + i * LARGE_BENCH_UNIT_SIZE, bench_y,
-                                                 LARGE_BENCH_UNIT_SIZE - 4, LARGE_BENCH_UNIT_SIZE - 4)
+                    for i in range(bench_slots):
+                        bench_rect = pygame.Rect(
+                            bench_x + i * (bench_card_size + card_gap),
+                            bench_y,
+                            bench_card_size,
+                            bench_card_size
+                        )
                         if bench_rect.collidepoint(mouse_pos) and player.bench[i]:
                             player.sell_unit(i)
                             break
@@ -1253,13 +1294,20 @@ def main():
                 else:
                     # Normal game logic
                     shop_clicked = False
-                    shop_width = GameConstants.SHOP_SLOTS * LARGE_SHOP_UNIT_SIZE
+                    shop_slots = GameConstants.SHOP_SLOTS
+                    shop_card_size = LARGE_SHOP_UNIT_SIZE
+                    card_gap = 20
+                    shop_width = shop_slots * shop_card_size + (shop_slots - 1) * card_gap
                     shop_x = (screen_width - shop_width) // 2
-                    shop_y = screen_height - 180
+                    shop_y = screen_height - shop_card_size - 60  # match draw_shop
 
-                    for i in range(GameConstants.SHOP_SLOTS):
-                        shop_rect = pygame.Rect(shop_x + i * LARGE_SHOP_UNIT_SIZE, shop_y,
-                                                LARGE_SHOP_UNIT_SIZE - 6, LARGE_SHOP_UNIT_SIZE - 6)
+                    for i in range(shop_slots):
+                        shop_rect = pygame.Rect(
+                            shop_x + i * (shop_card_size + card_gap),
+                            shop_y,
+                            shop_card_size,
+                            shop_card_size
+                        )
                         if shop_rect.collidepoint(mouse_pos) and player.shop[i] is not None:
                             # Check if this purchase would cause a combination
                             unit_to_buy = player.shop[i]
@@ -1357,7 +1405,6 @@ def main():
 
     pygame.quit()
     sys.exit()
-
 
 if __name__ == "__main__":
     main()
