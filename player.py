@@ -151,14 +151,9 @@ class Player:
             self.create_unit("Gorilla Grodd", 4, ["Animals", "Bruiser"], 1100, 70, png_files),
             self.create_unit("Deathstroke", 4, ["League of Assassins"], 920, 85, png_files),
             self.create_unit("Talia Al Ghul", 4, ["League of Assassins"], 880, 78, png_files),
-            self.create_unit("Solomon Grundy", 4, ["Legion of Doom", "Resurrection"], 1200, 65, png_files),
             self.create_unit("Metallo", 4, ["Robots"], 850, 88, png_files),
             self.create_unit("Red Tornado", 4, ["Robots"], 870, 84, png_files),
-            self.create_unit("King Shark", 4, ["Animals", "Lurking In The Waters"], 1150, 72, png_files),
-            self.create_unit("The Question", 4, ["I Have A Question"], 780, 90, png_files),
             self.create_unit("Amazo", 4, ["Robots", "Duelists"], 940, 83, png_files),
-            self.create_unit("Brainiac", 4, ["Robots", "Threat"], 890, 86, png_files),
-            self.create_unit("Zoom", 4, ["Threat"], 820, 92, png_files),
         ]
 
         cost_5_units = [
@@ -309,56 +304,84 @@ class Player:
         return False
 
     def check_combinations(self):
-        """Check for unit combinations across bench and board (repeat until no more possible)"""
+        """
+        Repeatedly combine units on bench and board if there are at least 3 of the same name and star level,
+        including after a unit is combined and upgraded (allowing for chain combinations without further user action).
+        This version ensures that after a unit is combined and starred up, the process IMMEDIATELY checks if the new
+        higher-star unit is eligible to combine again (e.g., 3x 2-stars instantly become a 3-star).
+        """
         while True:
             unit_counts = {}
 
-            # Count units on bench
-            for unit in self.bench:
+            # Count all units and their locations (bench or board)
+            for i, unit in enumerate(self.bench):
                 if unit:
                     key = (unit.name, unit.stars)
                     if key not in unit_counts:
                         unit_counts[key] = []
-                    unit_counts[key].append(('bench', unit))
-
-            # Count units on board
+                    unit_counts[key].append(('bench', i, unit))
             for y, row in enumerate(self.board):
                 for x, unit in enumerate(row):
                     if unit:
                         key = (unit.name, unit.stars)
                         if key not in unit_counts:
                             unit_counts[key] = []
-                        unit_counts[key].append(('board', unit, (x, y)))
+                        unit_counts[key].append(('board', (x, y), unit))
 
-            found = False
-            for (name, stars), units in unit_counts.items():
-                if len(units) >= 3 and stars < 3:
-                    base_unit_info = units[0]
-                    units_to_remove = units[1:3]
+            did_combine = False
+            # Loop through all star levels, lowest to highest, to catch chain reactions
+            # Sort by stars, so 1-star combines before 2-star, etc.
+            for (name, stars) in sorted(unit_counts.keys(), key=lambda t: t[1]):
+                locations = unit_counts[(name, stars)]
+                while len(locations) >= 3 and stars < 3:
+                    # Always pull fresh references
+                    # Find three live units at this star level
+                    found_units = []
+                    slot_refs = []
 
-                    if base_unit_info[0] == 'bench':
-                        base_unit = base_unit_info[1]
-                    else:
-                        base_unit = base_unit_info[1]
-
-                    for unit_info in units_to_remove:
-                        if unit_info[0] == 'bench':
-                            unit_to_combine = unit_info[1]
-                            for i, bench_unit in enumerate(self.bench):
-                                if bench_unit == unit_to_combine:
-                                    self.bench[i] = None
-                                    break
+                    for loc in locations:
+                        if loc[0] == 'bench':
+                            unit = self.bench[loc[1]]
                         else:
-                            unit_to_combine = unit_info[1]
-                            x, y = unit_info[2]
+                            x, y = loc[1]
+                            unit = self.board[y][x]
+                        if unit and unit.name == name and unit.stars == stars:
+                            found_units.append(unit)
+                            slot_refs.append(loc)
+                        if len(found_units) == 3:
+                            break
+
+                    if len(found_units) < 3:
+                        break  # Defensive
+
+                    # Upgrade the first unit
+                    base_unit = found_units[0]
+                    # Remove the other two from play
+                    for loc in slot_refs[1:]:
+                        if loc[0] == 'bench':
+                            self.bench[loc[1]] = None
+                        else:
+                            x, y = loc[1]
                             self.board[y][x] = None
 
-                        base_unit.combine(unit_to_combine)
+                    # Star up the base unit
+                    base_unit.stars += 1
+                    base_unit.health = int(base_unit.health * 1.8)
+                    base_unit.damage = int(base_unit.damage * 1.8)
+                    if base_unit.stars == 3:
+                        base_unit.health = int(base_unit.health * 1.5)
+                        base_unit.damage = int(base_unit.damage * 1.5)
 
                     self.calculate_traits()
-                    found = True
-                    break  # Need to restart because star count changed
-            if not found:
+                    did_combine = True
+
+                    # After a combine, break to restart from scratch (so a new 2-star can immediately chain up to 3-star)
+                    break
+
+                if did_combine:
+                    break
+
+            if not did_combine:
                 break
 
     def calculate_traits(self):

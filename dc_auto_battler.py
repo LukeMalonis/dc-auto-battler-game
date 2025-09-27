@@ -728,7 +728,7 @@ def draw_ui_elements(screen, player, buttons, mouse_pos, fonts, screen_width, sc
     screen.blit(level_text, (screen_width - 140, 45))
 
     xp_text = font_small.render(
-        f"XP: {player.xp}/{player.xp_to_level[player.level - 1] if player.level < 9 else 'MAX'}", True,
+        f"XP: {player.xp}/{player.xp_to_level[player.level - 1] if player.level < 10 else 'MAX'}", True,
         Colors.BUTTON_TEXT)
     screen.blit(xp_text, (screen_width - 140, 70))
 
@@ -831,7 +831,7 @@ def draw_info_panel(screen, player, screen_width, screen_height, fonts):
         f"Level: {player.level}",
         f"Round: {player.round}",
         f"Gold: {player.gold}",
-        f"XP: {player.xp}/{player.xp_to_level[player.level - 1] if player.level < 9 else 'MAX'}"
+        f"XP: {player.xp}/{player.xp_to_level[player.level - 1] if player.level < 10 else 'MAX'}"
     ]
 
     y_offset = 50
