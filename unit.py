@@ -22,5 +22,10 @@ class Unit:
             self.stars += 1
             self.health = int(self.health * 1.8)
             self.damage = int(self.damage * 1.8)
+
+            # If combining two 2-stars into a 3-star, apply additional bonus
+            if self.stars == 3:
+                self.health = int(self.health * 1.5)  # Extra bonus for 3-star
+                self.damage = int(self.damage * 1.5)
             return True
         return False

@@ -36,3 +36,4 @@ class DragState(Enum):
     NONE = 0
     FROM_BENCH = 1
     FROM_BOARD = 2
+    FROM_SHOP = 3

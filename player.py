@@ -119,11 +119,56 @@ class Player:
         return False
 
     def sell_unit(self, bench_index):
-        """Sell unit from bench for full cost"""
+        """Sell unit from bench with proper star-based values"""
         if 0 <= bench_index < len(self.bench) and self.bench[bench_index]:
             unit = self.bench[bench_index]
-            self.gold += unit.cost
+
+            # Base sell value = cost
+            sell_value = unit.cost
+
+            # Apply star multipliers
+            if unit.stars == 2:
+                # 2-star: 1-cost gets 3, others get cost*2 + 1
+                if unit.cost == 1:
+                    sell_value = 3
+                else:
+                    sell_value = (unit.cost * 2) + 1
+            elif unit.stars == 3:
+                # 3-star: 1-cost gets 9, others get more complex formula
+                if unit.cost == 1:
+                    sell_value = 9
+                else:
+                    sell_value = (unit.cost * 5) + 2  # Example: 2-cost = 12, 3-cost = 17, etc.
+
+            self.gold += sell_value
             self.bench[bench_index] = None
+            return True
+        return False
+
+    def sell_board_unit(self, x, y):
+        """Sell unit from board with proper star-based values"""
+        if (0 <= x < GameConstants.BOARD_WIDTH and
+                0 <= y < GameConstants.BOARD_HEIGHT and
+                self.board[y][x]):
+
+            unit = self.board[y][x]
+
+            # Same sell logic as above
+            sell_value = unit.cost
+            if unit.stars == 2:
+                if unit.cost == 1:
+                    sell_value = 3
+                else:
+                    sell_value = (unit.cost * 2) + 1
+            elif unit.stars == 3:
+                if unit.cost == 1:
+                    sell_value = 9
+                else:
+                    sell_value = (unit.cost * 5) + 2
+
+            self.gold += sell_value
+            self.board[y][x] = None
+            self.calculate_traits()
             return True
         return False
 
@@ -156,29 +201,59 @@ class Player:
         return False
 
     def check_combinations(self):
-        """Check for 3 of the same unit to combine"""
-        # Count units by name and stars on bench
+        """Check for unit combinations across bench and board"""
+        # Combine units by name and stars across both bench and board
         unit_counts = {}
+
+        # Count units on bench
         for unit in self.bench:
             if unit:
                 key = (unit.name, unit.stars)
                 if key not in unit_counts:
                     unit_counts[key] = []
-                unit_counts[key].append(unit)
+                unit_counts[key].append(('bench', unit))
 
-        # Check for combinations
+        # Count units on board
+        for y, row in enumerate(self.board):
+            for x, unit in enumerate(row):
+                if unit:
+                    key = (unit.name, unit.stars)
+                    if key not in unit_counts:
+                        unit_counts[key] = []
+                    unit_counts[key].append(('board', unit, (x, y)))
+
+        # Check for combinations (need 3 of same name and stars)
         for (name, stars), units in unit_counts.items():
-            if len(units) >= 3:
-                # Combine first 3 units
-                base_unit = units[0]
+            if len(units) >= 3 and stars < 3:  # Can't combine beyond 3-star
+                # Take first 3 units to combine
+                base_unit_info = units[0]
                 units_to_remove = units[1:3]
 
-                for unit in units_to_remove:
-                    base_unit.combine(unit)
-                    # Remove the combined units from bench
-                    for i, bench_unit in enumerate(self.bench):
-                        if bench_unit == unit:
-                            self.bench[i] = None
+                # Get the base unit (the one that will be upgraded)
+                if base_unit_info[0] == 'bench':
+                    base_unit = base_unit_info[1]
+                else:  # board
+                    base_unit = base_unit_info[1]
+
+                # Combine with the other 2 units
+                for unit_info in units_to_remove:
+                    if unit_info[0] == 'bench':
+                        unit_to_combine = unit_info[1]
+                        # Remove from bench
+                        for i, bench_unit in enumerate(self.bench):
+                            if bench_unit == unit_to_combine:
+                                self.bench[i] = None
+                                break
+                    else:  # board
+                        unit_to_combine = unit_info[1]
+                        x, y = unit_info[2]
+                        self.board[y][x] = None
+
+                    # Perform the combination
+                    base_unit.combine(unit_to_combine)
+
+                # Re-check traits after combination
+                self.calculate_traits()
                 break
 
     def calculate_traits(self):
@@ -193,3 +268,64 @@ class Player:
                         trait_counts[trait] = trait_counts.get(trait, 0) + 1
 
         self.traits = trait_counts
+
+    def can_combine_anywhere(self, unit_to_check):
+        """Check if a unit can combine with existing units anywhere (bench or board)"""
+        if not unit_to_check:
+            return False
+        count = 0
+        # Count matching units on bench
+        for bench_unit in self.bench:
+            if bench_unit and bench_unit.name == unit_to_check.name and bench_unit.stars == unit_to_check.stars:
+                count += 1
+        # Count matching units on board
+        for row in self.board:
+            for board_unit in row:
+                if board_unit and board_unit.name == unit_to_check.name and board_unit.stars == unit_to_check.stars:
+                    count += 1
+        return count >= 2  # Need 2 existing + the new one = 3 total
+
+    def buy_and_combine(self, shop_index):
+        """Buy a unit and automatically combine it with existing matching units"""
+        if 0 <= shop_index < len(self.shop) and self.shop[shop_index]:
+            unit = self.shop[shop_index]
+            if self.gold >= unit.cost:
+                # Find existing matching units to combine with
+                units_to_combine = []
+
+                # Check bench for matching units
+                for i, bench_unit in enumerate(self.bench):
+                    if bench_unit and bench_unit.name == unit.name and bench_unit.stars == unit.stars:
+                        units_to_combine.append(('bench', i, bench_unit))
+
+                # Check board for matching units
+                for y, row in enumerate(self.board):
+                    for x, board_unit in enumerate(row):
+                        if board_unit and board_unit.name == unit.name and board_unit.stars == unit.stars:
+                            units_to_combine.append(('board', (x, y), board_unit))
+
+                # If we have at least 2 matching units (will make 3 with the new one)
+                if len(units_to_combine) >= 2:
+                    # Take the first 2 units to combine with
+                    base_unit = units_to_combine[0][2]
+                    second_unit = units_to_combine[1][2]
+
+                    # Combine the units
+                    base_unit.combine(second_unit)
+
+                    # Remove the second unit from its location
+                    if units_to_combine[1][0] == 'bench':
+                        self.bench[units_to_combine[1][1]] = None
+                    else:  # board
+                        x, y = units_to_combine[1][1]
+                        self.board[y][x] = None
+
+                    # Pay for the unit and remove from shop
+                    self.gold -= unit.cost
+                    self.shop[shop_index] = None
+                    self.calculate_traits()
+                    return True
+
+                # Fallback to normal purchase if combination didn't work
+                return self.buy_unit(shop_index)
+        return False
