@@ -51,8 +51,9 @@ def save_config(config):
 
 # Larger sizes for better readability and future PNG art
 LARGE_UNIT_SIZE = 120
-LARGE_SHOP_UNIT_SIZE = 180  # Made shop units even bigger for easier clicking
-LARGE_BENCH_UNIT_SIZE = 100
+LARGE_SHOP_UNIT_SIZE = 200  # Made shop units even bigger for easier clicking
+card_gap = 20
+LARGE_BENCH_UNIT_SIZE = 200
 
 # Define trait thresholds and descriptions
 TRAIT_INFO = {
@@ -658,18 +659,33 @@ def draw_board(screen, player, screen_width, screen_height, drag_state, drag_uni
 
 
 def draw_bench(screen, player, screen_width, screen_height, drag_state, drag_unit, drag_pos, mouse_pos):
-    bench_width = GameConstants.BENCH_SLOTS * LARGE_BENCH_UNIT_SIZE
+    bench_slots = GameConstants.BENCH_SLOTS
+    shop_slots = GameConstants.SHOP_SLOTS
+    shop_card_size = LARGE_SHOP_UNIT_SIZE
+    card_gap = 20
+
+    # Calculate the total width of the shop row
+    shop_width = shop_slots * shop_card_size + (shop_slots - 1) * card_gap
+
+    # Calculate the size of each bench square so that 9 + 8 gaps fits in shop_width
+    bench_card_size = (shop_width - (bench_slots - 1) * card_gap) // bench_slots
+
+    bench_width = bench_slots * bench_card_size + (bench_slots - 1) * card_gap
     bench_x = (screen_width - bench_width) // 2
-    bench_y = screen_height - 320  # Adjusted for larger shop units
+    # Place the bench above shop row, tweak - bench_card_size - XX for vertical alignment
+    bench_y = screen_height - shop_card_size - bench_card_size - 80  # 80px gap, tweak as needed
 
     pygame.draw.rect(screen, Colors.BENCH_BG, (bench_x - 10, bench_y - 10,
-                                               bench_width + 20, LARGE_BENCH_UNIT_SIZE + 20), border_radius=8)
+                                               bench_width + 20, bench_card_size + 20), border_radius=8)
 
-    for i in range(GameConstants.BENCH_SLOTS):
-        rect = pygame.Rect(bench_x + i * LARGE_BENCH_UNIT_SIZE, bench_y,
-                           LARGE_BENCH_UNIT_SIZE - 4, LARGE_BENCH_UNIT_SIZE - 4)
+    for i in range(bench_slots):
+        rect = pygame.Rect(
+            bench_x + i * (bench_card_size + card_gap),
+            bench_y,
+            bench_card_size,
+            bench_card_size
+        )
 
-        # Highlight if mouse is over and we can drop here (empty slot or different unit)
         can_drop_here = (player.bench[i] is None or
                          (drag_state != DragState.NONE and drag_unit != player.bench[i]))
 
@@ -677,41 +693,46 @@ def draw_bench(screen, player, screen_width, screen_height, drag_state, drag_uni
                           rect.collidepoint(mouse_pos) and
                           can_drop_here)
 
-        # Draw bench slot
         slot_color = Colors.BUTTON_HOVER if is_highlighted else Colors.UNIT_BG
         pygame.draw.rect(screen, slot_color, rect, border_radius=6)
         pygame.draw.rect(screen, Colors.BUTTON_TEXT, rect, 1, border_radius=6)
 
-        # Draw unit if present
         if i < len(player.bench) and player.bench[i]:
             unit = player.bench[i]
             draw_unit_card(screen, unit, rect)
 
 
 def draw_shop(screen, player, screen_width, screen_height, drag_state, drag_source_type, mouse_pos):
-    shop_width = GameConstants.SHOP_SLOTS * (LARGE_SHOP_UNIT_SIZE + 20)
+    shop_slots = GameConstants.SHOP_SLOTS
+    shop_card_size = LARGE_SHOP_UNIT_SIZE
+    card_gap = 20
+    shop_width = shop_slots * shop_card_size + (shop_slots - 1) * card_gap
     shop_x = (screen_width - shop_width) // 2
-    shop_y = screen_height - 40  # Adjusted for larger shop units
+    shop_y = screen_height - shop_card_size - 60  # 60px above bottom
 
-    # Larger shop background
-    pygame.draw.rect(screen, Colors.SHOP_BG, (shop_x - 15, shop_y - 15,
-                                              shop_width + 30, LARGE_SHOP_UNIT_SIZE + 30), border_radius=10)
+    pygame.draw.rect(
+        screen, Colors.SHOP_BG,
+        (shop_x - 15, shop_y - 15, shop_width + 30, shop_card_size + 30), border_radius=10
+    )
 
-    for i in range(GameConstants.SHOP_SLOTS):
-        rect = pygame.Rect(shop_x + i * (LARGE_SHOP_UNIT_SIZE + 20), shop_y,
-                           LARGE_SHOP_UNIT_SIZE - 6, LARGE_SHOP_UNIT_SIZE - 6)
+    for i in range(shop_slots):
+        rect = pygame.Rect(
+            shop_x + i * (shop_card_size + card_gap),
+            shop_y,
+            shop_card_size,
+            shop_card_size
+        )
 
-        # Highlight shop slots when hovering (not dragging from shop)
-        is_highlighted = (drag_state == DragState.NONE and
-                          rect.collidepoint(mouse_pos) and
-                          player.shop[i] is not None)
+        is_highlighted = (
+            drag_state == DragState.NONE
+            and rect.collidepoint(mouse_pos)
+            and player.shop[i] is not None
+        )
 
-        # Draw shop slot
         slot_color = Colors.BUTTON_HOVER if is_highlighted else Colors.UNIT_BG
         pygame.draw.rect(screen, slot_color, rect, border_radius=8)
         pygame.draw.rect(screen, Colors.BUTTON_TEXT, rect, 2, border_radius=8)
 
-        # Draw shop unit if present
         if i < len(player.shop) and player.shop[i]:
             unit = player.shop[i]
             draw_unit_card(screen, unit, rect, show_details=True, is_shop_unit=True)
@@ -755,7 +776,7 @@ def draw_traits_panel(screen, player, screen_width, screen_height, fonts, mouse_
     panel_width = 300  # Increased width
     panel_x = 10
     panel_y = 180
-    panel_height = screen_height - 320  # Much taller to fit all traits
+    panel_height = int(screen_height * 0.75)  # Much taller to fit all traits
 
     # Draw background
     pygame.draw.rect(screen, Colors.TRAIT_BG, (panel_x, panel_y, panel_width, panel_height), border_radius=8)
@@ -804,7 +825,7 @@ def draw_info_panel(screen, player, screen_width, screen_height, fonts):
     panel_width = 280  # Increased width
     panel_x = screen_width - panel_width - 10
     panel_y = 180
-    panel_height = screen_height - 320  # Much taller
+    panel_height = int(screen_height * 0.75)  # Much taller
 
     # Draw background
     pygame.draw.rect(screen, Colors.INFO_BG, (panel_x, panel_y, panel_width, panel_height), border_radius=8)
