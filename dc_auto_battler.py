@@ -754,7 +754,7 @@ def draw_ui_elements(screen, player, buttons, mouse_pos, fonts, screen_width, sc
 def draw_traits_panel(screen, player, screen_width, screen_height, fonts, mouse_pos):
     panel_width = 300  # Increased width
     panel_x = 10
-    panel_y = 100
+    panel_y = 180
     panel_height = screen_height - 200  # Much taller to fit all traits
 
     # Draw background
@@ -803,7 +803,7 @@ def draw_traits_panel(screen, player, screen_width, screen_height, fonts, mouse_
 def draw_info_panel(screen, player, screen_width, screen_height, fonts):
     panel_width = 280  # Increased width
     panel_x = screen_width - panel_width - 10
-    panel_y = 100
+    panel_y = 180
     panel_height = screen_height - 200  # Much taller
 
     # Draw background

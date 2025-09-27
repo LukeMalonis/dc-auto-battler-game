@@ -7,7 +7,7 @@ class Player:
         self.gold = 8
         self.level = 1
         self.xp = 0
-        self.xp_to_level = [2, 6, 10, 20, 36, 56, 80, 100]
+        self.xp_to_level = [2, 2, 6, 10, 20, 36, 48, 76, 84]
         self.bench = [None] * GameConstants.BENCH_SLOTS
         self.board = [[None for _ in range(GameConstants.BOARD_WIDTH)]
                       for _ in range(GameConstants.BOARD_HEIGHT)]
@@ -25,22 +25,44 @@ class Player:
         return base_income + interest
 
     def end_turn(self):
-        """End turn and receive income"""
+        """End turn, receive income, and grant 2 XP (with correct level-up behavior up to 10)"""
         income = self.calculate_income()
         self.gold += income
         self.round += 1
+
+        # Give 2 XP per round, but do not exceed level 10
+        if self.level < 10:
+            self.xp += 2
+            while self.level < 10:
+                xp_needed = self.xp_to_level[self.level - 1] if self.level <= len(self.xp_to_level) else 100
+                if self.xp >= xp_needed:
+                    self.xp -= xp_needed
+                    self.level += 1
+                    if self.level == 10:
+                        self.xp = 0  # XP is capped at 10
+                        break
+                else:
+                    break
+
         self.generate_shop()  # Free refresh each round
         return income
 
     def buy_xp(self):
-        """Buy 4 XP for 4 gold"""
-        if self.gold >= 4 and self.level < 9:
+        """Buy 4 XP for 4 gold (works up to level 10, handles overflow XP)"""
+        if self.gold >= 4 and self.level < 10:
             self.gold -= 4
             self.xp += 4
-            if self.level < 9 and self.xp >= self.xp_to_level[self.level - 1]:
-                self.level += 1
-                self.xp = 0
-                return True
+            while self.level < 10:
+                xp_needed = self.xp_to_level[self.level - 1] if self.level <= len(self.xp_to_level) else 100
+                if self.xp >= xp_needed:
+                    self.xp -= xp_needed
+                    self.level += 1
+                    if self.level == 10:
+                        self.xp = 0  # Cap XP at 0 on max level
+                        break
+                else:
+                    break
+            return True
         return False
 
     def refresh_shop(self):
@@ -270,6 +292,7 @@ class Player:
                 self.board[board_y][board_x] = self.bench[bench_index]
                 self.bench[bench_index] = None
                 self.calculate_traits()
+                self.check_combinations()  # <--- ADD THIS LINE
                 return True
         return False
 
@@ -281,52 +304,61 @@ class Player:
             self.bench[bench_index] = self.board[board_y][board_x]
             self.board[board_y][board_x] = None
             self.calculate_traits()
+            self.check_combinations()  # <--- ADD THIS LINE
             return True
         return False
 
     def check_combinations(self):
-        unit_counts = {}
+        """Check for unit combinations across bench and board (repeat until no more possible)"""
+        while True:
+            unit_counts = {}
 
-        for unit in self.bench:
-            if unit:
-                key = (unit.name, unit.stars)
-                if key not in unit_counts:
-                    unit_counts[key] = []
-                unit_counts[key].append(('bench', unit))
-
-        for y, row in enumerate(self.board):
-            for x, unit in enumerate(row):
+            # Count units on bench
+            for unit in self.bench:
                 if unit:
                     key = (unit.name, unit.stars)
                     if key not in unit_counts:
                         unit_counts[key] = []
-                    unit_counts[key].append(('board', unit, (x, y)))
+                    unit_counts[key].append(('bench', unit))
 
-        for (name, stars), units in unit_counts.items():
-            if len(units) >= 3 and stars < 3:
-                base_unit_info = units[0]
-                units_to_remove = units[1:3]
+            # Count units on board
+            for y, row in enumerate(self.board):
+                for x, unit in enumerate(row):
+                    if unit:
+                        key = (unit.name, unit.stars)
+                        if key not in unit_counts:
+                            unit_counts[key] = []
+                        unit_counts[key].append(('board', unit, (x, y)))
 
-                if base_unit_info[0] == 'bench':
-                    base_unit = base_unit_info[1]
-                else:
-                    base_unit = base_unit_info[1]
+            found = False
+            for (name, stars), units in unit_counts.items():
+                if len(units) >= 3 and stars < 3:
+                    base_unit_info = units[0]
+                    units_to_remove = units[1:3]
 
-                for unit_info in units_to_remove:
-                    if unit_info[0] == 'bench':
-                        unit_to_combine = unit_info[1]
-                        for i, bench_unit in enumerate(self.bench):
-                            if bench_unit == unit_to_combine:
-                                self.bench[i] = None
-                                break
+                    if base_unit_info[0] == 'bench':
+                        base_unit = base_unit_info[1]
                     else:
-                        unit_to_combine = unit_info[1]
-                        x, y = unit_info[2]
-                        self.board[y][x] = None
+                        base_unit = base_unit_info[1]
 
-                    base_unit.combine(unit_to_combine)
+                    for unit_info in units_to_remove:
+                        if unit_info[0] == 'bench':
+                            unit_to_combine = unit_info[1]
+                            for i, bench_unit in enumerate(self.bench):
+                                if bench_unit == unit_to_combine:
+                                    self.bench[i] = None
+                                    break
+                        else:
+                            unit_to_combine = unit_info[1]
+                            x, y = unit_info[2]
+                            self.board[y][x] = None
 
-                self.calculate_traits()
+                        base_unit.combine(unit_to_combine)
+
+                    self.calculate_traits()
+                    found = True
+                    break  # Need to restart because star count changed
+            if not found:
                 break
 
     def calculate_traits(self):
@@ -354,50 +386,50 @@ class Player:
                     count += 1
         return count >= 2
 
-def buy_and_combine(self, shop_index):
-    """Buy a unit and automatically combine it with existing matching units"""
-    if 0 <= shop_index < len(self.shop) and self.shop[shop_index]:
-        unit = self.shop[shop_index]
-        if self.gold >= unit.cost:
-            units_to_combine = []
+    def buy_and_combine(self, shop_index):
+        """Buy a unit and automatically combine it with existing matching units"""
+        if 0 <= shop_index < len(self.shop) and self.shop[shop_index]:
+            unit = self.shop[shop_index]
+            if self.gold >= unit.cost:
+                units_to_combine = []
 
-            for i, bench_unit in enumerate(self.bench):
-                if bench_unit and bench_unit.name == unit.name and bench_unit.stars == unit.stars:
-                    units_to_combine.append(('bench', i, bench_unit))
+                for i, bench_unit in enumerate(self.bench):
+                    if bench_unit and bench_unit.name == unit.name and bench_unit.stars == unit.stars:
+                        units_to_combine.append(('bench', i, bench_unit))
 
-            for y, row in enumerate(self.board):
-                for x, board_unit in enumerate(row):
-                    if board_unit and board_unit.name == unit.name and board_unit.stars == unit.stars:
-                        units_to_combine.append(('board', (x, y), board_unit))
+                for y, row in enumerate(self.board):
+                    for x, board_unit in enumerate(row):
+                        if board_unit and board_unit.name == unit.name and board_unit.stars == unit.stars:
+                            units_to_combine.append(('board', (x, y), board_unit))
 
-            if len(units_to_combine) >= 2:
-                base_unit = units_to_combine[0][2]
-                second_unit = units_to_combine[1][2]
+                if len(units_to_combine) >= 2:
+                    base_unit = units_to_combine[0][2]
+                    second_unit = units_to_combine[1][2]
 
-                base_unit.combine(second_unit)
+                    base_unit.combine(second_unit)
 
-                if units_to_combine[1][0] == 'bench':
-                    self.bench[units_to_combine[1][1]] = None
-                else:
-                    x, y = units_to_combine[1][1]
-                    self.board[y][x] = None
+                    if units_to_combine[1][0] == 'bench':
+                        self.bench[units_to_combine[1][1]] = None
+                    else:
+                        x, y = units_to_combine[1][1]
+                        self.board[y][x] = None
 
-                self.gold -= unit.cost
-                self.shop[shop_index] = None
-                self.calculate_traits()
-                return True
-
-            # If no combine, just buy as normal (ensure PNG transfer)
-            for i, bench_unit in enumerate(self.bench):
-                if bench_unit is None:
-                    new_unit = self.create_unit(unit.name, unit.cost, unit.traits.copy(), unit.health, unit.damage, [])
-                    if unit.png_name:
-                        new_unit.png_name = unit.png_name
-                    if unit.png_surface:
-                        new_unit.png_surface = unit.png_surface
-                    self.bench[i] = new_unit
                     self.gold -= unit.cost
                     self.shop[shop_index] = None
-                    self.check_combinations()
+                    self.calculate_traits()
                     return True
-    return False
+
+                # If no combine, just buy as normal (ensure PNG transfer)
+                for i, bench_unit in enumerate(self.bench):
+                    if bench_unit is None:
+                        new_unit = self.create_unit(unit.name, unit.cost, unit.traits.copy(), unit.health, unit.damage, [])
+                        if unit.png_name:
+                            new_unit.png_name = unit.png_name
+                        if unit.png_surface:
+                            new_unit.png_surface = unit.png_surface
+                        self.bench[i] = new_unit
+                        self.gold -= unit.cost
+                        self.shop[shop_index] = None
+                        self.check_combinations()
+                        return True
+        return False
