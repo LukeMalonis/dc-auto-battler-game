@@ -64,7 +64,8 @@ TRAIT_INFO = {
     "Justice League": {
         "thresholds": [2, 4, 6, 8],
         "description": "Justice League members protect each other with shields and bonus stats",
-        "bonuses": ["2: +100 Health to all JL", "4: +200 Health & Shield", "6: +300 Health & Attack Speed", "8: +500 Health & Teamwide Buff"]
+        "bonuses": ["2: +100 Health to all JL", "4: +200 Health & Shield", "6: +300 Health & Attack Speed",
+                    "8: +500 Health & Teamwide Buff"]
     },
     "Rogues Gallery": {
         "thresholds": [3, 5, 7],
@@ -241,19 +242,17 @@ def draw_trait_tooltip(surface, trait_name, mouse_pos, screen_width, screen_heig
     info = TRAIT_INFO[trait_name]
     font_title = pygame.font.SysFont('arial', 16, bold=True)
     font_desc = pygame.font.SysFont('arial', 12)
-    font_units = pygame.font.SysFont('arial', 11)
+    font_bonus = pygame.font.SysFont('arial', 11)
     font_thresholds = pygame.font.SysFont('arial', 12, bold=True)
 
     # Prepare text
     title_text = font_title.render(trait_name, True, Colors.BUTTON_TEXT)
     thresholds_text = font_thresholds.render(f"Thresholds: {get_trait_full_info(trait_name)}", True, Colors.GOLD_COLOR)
     desc_text = font_desc.render(info["description"], True, Colors.BUTTON_TEXT)
-    units_text = font_units.render(f"Units: {', '.join(info['units'][:4])}...", True, (200, 200, 200))
 
-    # Calculate tooltip size
-    tooltip_width = max(title_text.get_width(), thresholds_text.get_width(), desc_text.get_width(),
-                        units_text.get_width()) + 20
-    tooltip_height = 85
+    # Calculate tooltip size based on content
+    tooltip_width = max(title_text.get_width(), thresholds_text.get_width(), desc_text.get_width()) + 20
+    tooltip_height = 60 + len(info["bonuses"]) * 15
 
     # Position tooltip (avoid going off screen)
     tooltip_x = mouse_pos[0] + 15
@@ -273,7 +272,11 @@ def draw_trait_tooltip(surface, trait_name, mouse_pos, screen_width, screen_heig
     surface.blit(title_text, (tooltip_x + 10, tooltip_y + 8))
     surface.blit(thresholds_text, (tooltip_x + 10, tooltip_y + 28))
     surface.blit(desc_text, (tooltip_x + 10, tooltip_y + 48))
-    surface.blit(units_text, (tooltip_x + 10, tooltip_y + 65))
+
+    # Draw bonuses
+    for i, bonus in enumerate(info["bonuses"]):
+        bonus_text = font_bonus.render(bonus, True, (200, 200, 100))
+        surface.blit(bonus_text, (tooltip_x + 10, tooltip_y + 65 + i * 15))
 
 
 def get_unit_border_color(cost):
@@ -385,7 +388,128 @@ def draw_unit_card(surface, unit, rect, show_details=False, is_shop_unit=False):
                     surface.blit(trait_outline, (trait_pos[0] + dx, trait_pos[1] + dy))
                 surface.blit(trait_text, trait_pos)
 
-# Drawing functions
+
+def draw_hugo_strange_choice(screen, choices, buttons, mouse_pos, screen_width, screen_height):
+    """Draw the Hugo Strange unit choice overlay"""
+    # Semi-transparent overlay covering the entire screen
+    overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+    overlay.fill((0, 0, 0, 180))  # Dark semi-transparent
+    screen.blit(overlay, (0, 0))
+
+    # Main choice panel
+    panel_width = 700
+    panel_height = 500
+    panel_x = (screen_width - panel_width) // 2
+    panel_y = (screen_height - panel_height) // 2
+
+    # Panel background
+    pygame.draw.rect(screen, (40, 40, 60), (panel_x, panel_y, panel_width, panel_height), border_radius=15)
+    pygame.draw.rect(screen, Colors.GOLD_COLOR, (panel_x, panel_y, panel_width, panel_height), 4, border_radius=15)
+
+    # Title
+    font_title = pygame.font.SysFont('arial', 32, bold=True)
+    title_text = font_title.render("HUGO STRANGE: CREATION SELECTION", True, Colors.GOLD_COLOR)
+    title_rect = title_text.get_rect(centerx=panel_x + panel_width // 2, y=panel_y + 30)
+    screen.blit(title_text, title_rect)
+
+    # Description
+    font_desc = pygame.font.SysFont('arial', 18)
+    desc_lines = [
+        "Hugo Strange has discovered how to create powerful beings.",
+        "Choose one creation to replace Hugo Strange and appear in your shop:",
+        "(This choice is permanent for the rest of the game)"
+    ]
+
+    for i, line in enumerate(desc_lines):
+        desc_text = font_desc.render(line, True, Colors.BUTTON_TEXT)
+        desc_rect = desc_text.get_rect(centerx=panel_x + panel_width // 2, y=panel_y + 90 + i * 30)
+        screen.blit(desc_text, desc_rect)
+
+    # Draw choice buttons
+    for button in buttons:
+        button.check_hover(mouse_pos)
+        button.draw(screen)
+
+    # Warning text at bottom
+    font_warning = pygame.font.SysFont('arial', 14)
+    warning_text = font_warning.render("All Hugo Strange units will be transformed into your selection", True,
+                                       (255, 100, 100))
+    warning_rect = warning_text.get_rect(centerx=panel_x + panel_width // 2, y=panel_y + panel_height - 40)
+    screen.blit(warning_text, warning_rect)
+
+
+def replace_hugo_strange_units(player, replacement_name):
+    """Replace all Hugo Strange units with the selected character"""
+    from unit import Unit
+    import os
+
+    # Get PNG files for the new unit
+    png_files = []
+    if os.path.exists("assets"):
+        png_files = os.listdir("assets")
+
+    # Replace Hugo Strange on board
+    for y in range(GameConstants.BOARD_HEIGHT):
+        for x in range(GameConstants.BOARD_WIDTH):
+            if player.board[y][x] and player.board[y][x].name == "Hugo Strange":
+                # Create replacement unit (use similar stats to Hugo Strange but new name/traits)
+                old_unit = player.board[y][x]
+                new_unit = Unit(
+                    replacement_name,
+                    old_unit.cost,
+                    get_replacement_traits(replacement_name),
+                    old_unit.health,
+                    old_unit.damage,
+                    get_replacement_png_name(replacement_name, png_files)
+                )
+                new_unit.stars = old_unit.stars
+                player.board[y][x] = new_unit
+
+    # Replace Hugo Strange on bench
+    for i in range(len(player.bench)):
+        if player.bench[i] and player.bench[i].name == "Hugo Strange":
+            old_unit = player.bench[i]
+            new_unit = Unit(
+                replacement_name,
+                old_unit.cost,
+                get_replacement_traits(replacement_name),
+                old_unit.health,
+                old_unit.damage,
+                get_replacement_png_name(replacement_name, png_files)
+            )
+            new_unit.stars = old_unit.stars
+            player.bench[i] = new_unit
+
+    # Update traits
+    player.calculate_traits()
+
+
+def get_replacement_traits(name):
+    """Get traits for Hugo Strange replacements"""
+    traits_map = {
+        "Mr. Freeze": ["Bruiser"],
+        "Poison Ivy": ["Mage"],
+        "Two Face": ["ADC"]
+    }
+    return traits_map.get(name, ["N/A"])
+
+
+def get_replacement_png_name(name, png_files):
+    """Find PNG file for replacement unit"""
+    name_mapping = {
+        "Mr. Freeze": "Mr._Freeze.png",
+        "Poison Ivy": "Poison_Ivy.png",
+        "Two Face": "Two_Face.png"
+    }
+
+    png_name = name_mapping.get(name)
+    if png_name and png_name in png_files:
+        return png_name
+    return None
+
+
+# [Keep all your existing drawing functions like draw_main_menu, draw_play_menu, etc.]
+# Drawing functions (these remain the same as before)
 def draw_main_menu(screen, buttons, mouse_pos, fonts, screen_width, screen_height):
     screen.fill(Colors.BACKGROUND)
 
@@ -709,7 +833,8 @@ def draw_info_panel(screen, player, screen_width, screen_height, fonts):
 
     income = player.calculate_income()
     board_units = sum(1 for row in player.board for unit in row if unit is not None)
-    max_units = GameConstants.MAX_BOARD_UNITS[player.level - 1] if player.level <= len(GameConstants.MAX_BOARD_UNITS) else 10
+    max_units = GameConstants.MAX_BOARD_UNITS[player.level - 1] if player.level <= len(
+        GameConstants.MAX_BOARD_UNITS) else 10
     bench_units = sum(1 for u in player.bench if u is not None)
 
     info_lines = [
@@ -719,7 +844,7 @@ def draw_info_panel(screen, player, screen_width, screen_height, fonts):
         f"Level: {player.level}",
         f"Round: {player.round}",
         f"Gold: {player.gold}",
-        f"XP: {player.xp}/{player.xp_to_level[player.level-1] if player.level < 9 else 'MAX'}"
+        f"XP: {player.xp}/{player.xp_to_level[player.level - 1] if player.level < 9 else 'MAX'}"
     ]
 
     y_offset = 50
@@ -745,6 +870,12 @@ def main():
     drag_source_type = None  # 'bench', 'board', or 'shop'
     drag_start_pos = (0, 0)  # Track where drag started
     click_threshold = 5  # Minimum pixels to consider it a drag vs click
+
+    # Hugo Strange special ability state
+    hugo_strange_choice_active = False
+    hugo_strange_choices = ["Mr. Freeze", "Poison Ivy", "Two Face"]
+    hugo_strange_choice_buttons = []
+    hugo_strange_selected_option = None
 
     # Initial UI setup with larger fonts
     screen_width, screen_height = display_manager.current_resolution
@@ -852,7 +983,7 @@ def main():
 
                     # Calculate how far the mouse moved from start
                     drag_distance = ((mouse_pos[0] - drag_start_pos[0]) ** 2 +
-                                    (mouse_pos[1] - drag_start_pos[1]) ** 2) ** 0.5
+                                     (mouse_pos[1] - drag_start_pos[1]) ** 2) ** 0.5
 
                     # Handle shop interactions - distinguish between click and drag
                     if drag_source_type == 'shop':
@@ -1009,6 +1140,10 @@ def main():
                 if single_player_button.is_clicked(mouse_pos, True):
                     game_state = GameState.SINGLE_PLAYER
                     player = Player()  # Reset player for new game
+                    # Reset Hugo Strange state for new game
+                    hugo_strange_choice_active = False
+                    hugo_strange_choice_buttons.clear()
+                    hugo_strange_selected_option = None
                 elif multiplayer_button.is_clicked(mouse_pos, True):
                     game_state = GameState.MULTIPLAYER_SCREEN
                 elif back_button.is_clicked(mouse_pos, True):
@@ -1034,42 +1169,98 @@ def main():
                     game_state = GameState.MAIN_MENU
 
             elif game_state == GameState.SINGLE_PLAYER:
-                # Check shop clicks (only if not dragging)
-                shop_clicked = False
-                shop_width = GameConstants.SHOP_SLOTS * LARGE_SHOP_UNIT_SIZE
-                shop_x = (screen_width - shop_width) // 2
-                shop_y = screen_height - 180
+                if hugo_strange_choice_active:
+                    # Handle Hugo Strange choice UI
+                    for i, button in enumerate(hugo_strange_choice_buttons):
+                        if button.is_clicked(mouse_pos, True):
+                            hugo_strange_selected_option = hugo_strange_choices[i]
+                            print(f"Hugo Strange selected: {hugo_strange_selected_option}")
 
-                for i in range(GameConstants.SHOP_SLOTS):
-                    shop_rect = pygame.Rect(shop_x + i * LARGE_SHOP_UNIT_SIZE, shop_y,
-                                            LARGE_SHOP_UNIT_SIZE - 6, LARGE_SHOP_UNIT_SIZE - 6)
-                    if shop_rect.collidepoint(mouse_pos) and player.shop[i] is not None:
-                        # Check if this purchase would cause a combination
-                        unit_to_buy = player.shop[i]
-                        if player.can_combine_anywhere(unit_to_buy):
-                            # Auto-combine if possible
-                            player.buy_and_combine(i)
-                        else:
-                            # Normal purchase
-                            player.buy_unit(i)
-                        shop_clicked = True
-                        break
+                            # Replace all Hugo Strange units on board and bench
+                            replace_hugo_strange_units(player, hugo_strange_selected_option)
 
-                # Only check buttons if no shop unit was clicked
-                if not shop_clicked:
-                    # Create temporary buttons for Buy XP and Reroll
-                    buy_xp_button = Button(30, screen_height - 60, 100, 35, "Buy XP (F)", fonts['button'])
-                    reroll_button = Button(140, screen_height - 60, 100, 35, "Reroll (D)", fonts['button'])
+                            # Set flag so this doesn't trigger again
+                            player.hugo_strange_activated = True
+                            hugo_strange_choice_active = False
+                            hugo_strange_choice_buttons.clear()
+                            break
+                else:
+                    # Normal game logic
+                    shop_clicked = False
+                    shop_width = GameConstants.SHOP_SLOTS * LARGE_SHOP_UNIT_SIZE
+                    shop_x = (screen_width - shop_width) // 2
+                    shop_y = screen_height - 180
 
-                    if buy_xp_button.is_clicked(mouse_pos, True):
-                        player.buy_xp()
-                    elif reroll_button.is_clicked(mouse_pos, True):
-                        player.refresh_shop()
-                    elif end_turn_button.is_clicked(mouse_pos, True):
-                        income = player.end_turn()
-                        print(f"Round {player.round} started! Received {income} gold.")
-                    elif back_button.is_clicked(mouse_pos, True):
-                        game_state = GameState.PLAY_MENU
+                    for i in range(GameConstants.SHOP_SLOTS):
+                        shop_rect = pygame.Rect(shop_x + i * LARGE_SHOP_UNIT_SIZE, shop_y,
+                                                LARGE_SHOP_UNIT_SIZE - 6, LARGE_SHOP_UNIT_SIZE - 6)
+                        if shop_rect.collidepoint(mouse_pos) and player.shop[i] is not None:
+                            # Check if this purchase would cause a combination
+                            unit_to_buy = player.shop[i]
+                            if unit_to_buy and player.gold >= unit_to_buy.cost:
+                                if player.can_combine_anywhere(unit_to_buy):
+                                    player.buy_and_combine(i)
+                                else:
+                                    player.buy_unit(i)
+                            shop_clicked = True
+                            break
+
+                    # Check for Hugo Strange placement (only if not already activated)
+                    if not shop_clicked and not hasattr(player, 'hugo_strange_activated'):
+                        hugo_placed = False
+                        # Check board for Hugo Strange
+                        for y in range(GameConstants.BOARD_HEIGHT):
+                            for x in range(GameConstants.BOARD_WIDTH):
+                                if player.board[y][x] and player.board[y][x].name == "Hugo Strange":
+                                    hugo_placed = True
+                                    break
+                            if hugo_placed:
+                                break
+
+                        # Check bench for Hugo Strange
+                        if not hugo_placed:
+                            for unit in player.bench:
+                                if unit and unit.name == "Hugo Strange":
+                                    hugo_placed = True
+                                    break
+
+                        if hugo_placed and not hugo_strange_choice_active:
+                            # Activate Hugo Strange choice
+                            hugo_strange_choice_active = True
+
+                            # Create choice buttons
+                            button_width = 550
+                            button_height = 70
+                            start_y = (screen_height - 500) // 2 + 150
+
+                            hugo_strange_choice_buttons.clear()
+                            for i, choice in enumerate(hugo_strange_choices):
+                                button_y = start_y + i * 90
+                                button = Button(
+                                    (screen_width - button_width) // 2,
+                                    button_y,
+                                    button_width,
+                                    button_height,
+                                    f"SELECT: {choice}",
+                                    pygame.font.SysFont('arial', 20, bold=True)
+                                )
+                                hugo_strange_choice_buttons.append(button)
+
+                    # Only check other buttons if no shop unit was clicked
+                    if not shop_clicked:
+                        # Create temporary buttons for Buy XP and Reroll
+                        buy_xp_button = Button(30, screen_height - 60, 100, 35, "Buy XP (F)", fonts['button'])
+                        reroll_button = Button(140, screen_height - 60, 100, 35, "Reroll (D)", fonts['button'])
+
+                        if buy_xp_button.is_clicked(mouse_pos, True):
+                            player.buy_xp()
+                        elif reroll_button.is_clicked(mouse_pos, True):
+                            player.refresh_shop()
+                        elif end_turn_button.is_clicked(mouse_pos, True):
+                            income = player.end_turn()
+                            print(f"Round {player.round} started! Received {income} gold.")
+                        elif back_button.is_clicked(mouse_pos, True):
+                            game_state = GameState.PLAY_MENU
 
             elif game_state == GameState.MULTIPLAYER_SCREEN:
                 if back_button.is_clicked(mouse_pos, True):
@@ -1083,10 +1274,15 @@ def main():
             draw_play_menu(screen, play_menu_buttons, back_button, mouse_pos, fonts, screen_width, screen_height)
         elif game_state == GameState.OPTIONS_SCREEN:
             draw_options_menu(screen, options_buttons, back_button, mouse_pos, fonts, screen_width, screen_height,
-                            display_manager)
+                              display_manager)
         elif game_state == GameState.SINGLE_PLAYER:
             draw_single_player_game(screen, player, game_buttons, mouse_pos, fonts, screen_width, screen_height,
                                     drag_state, drag_unit, drag_pos, drag_source_type)
+
+            # Draw Hugo Strange choice UI on top if active
+            if hugo_strange_choice_active:
+                draw_hugo_strange_choice(screen, hugo_strange_choices, hugo_strange_choice_buttons, mouse_pos,
+                                         screen_width, screen_height)
         elif game_state == GameState.MULTIPLAYER_SCREEN:
             draw_coming_soon(screen, back_button, mouse_pos, "Multiplayer", fonts, screen_width, screen_height)
 

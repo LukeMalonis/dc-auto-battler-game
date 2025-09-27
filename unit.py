@@ -19,24 +19,32 @@ class Unit:
     def load_png(self):
         """Load PNG image if available"""
         if self.png_name:
-            # Check both assets folder and unit_pngs folder for backward compatibility
+            print(f"Attempting to load PNG for {self.name}: {self.png_name}")  # Debug
+
+            # Try different possible paths
             possible_paths = [
                 f"assets/{self.png_name}",
                 f"unit_pngs/{self.png_name}",
-                self.png_name  # Direct path
+                self.png_name,
+                f"./assets/{self.png_name}",
+                f"./unit_pngs/{self.png_name}"
             ]
 
             for path in possible_paths:
                 if os.path.exists(path):
                     try:
+                        print(f"Found PNG at: {path}")  # Debug
                         original_image = pygame.image.load(path).convert_alpha()
+                        # Scale to appropriate size
                         self.png_surface = pygame.transform.smoothscale(original_image, (100, 100))
-                        print(f"Loaded PNG: {path}")  # Debug print
+                        print(f"Successfully loaded PNG for {self.name}")  # Debug
                         return
                     except Exception as e:
                         print(f"Failed to load image {path}: {e}")
 
-            print(f"PNG not found for {self.name}: {self.png_name}")
+            print(f"PNG not found for {self.name}. Tried: {possible_paths}")  # Debug
+        else:
+            print(f"No PNG name specified for {self.name}")  # Debug
 
     def __eq__(self, other):
         return self.id == other.id if other else False

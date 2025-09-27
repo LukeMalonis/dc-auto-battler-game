@@ -69,7 +69,6 @@ class Player:
                              png_files),
             self.create_unit("Krypto", 1, ["Animals", "Kryptonians"], 400, 70, png_files),
             # Additional 1-cost units to reach 14
-            self.create_unit("Hugo Strange", 1, ["Mind Games"], 480, 55, png_files),
             self.create_unit("Killer Croc", 1, ["Suicide Squad", "Bruiser"], 650, 40, png_files),
             self.create_unit("Captain Cold", 1, ["Rogues Gallery", "Bruiser"], 520, 58, png_files),
             self.create_unit("Mirror Master", 1, ["Rogues Gallery", "Snipers"], 460, 62, png_files),
@@ -102,6 +101,7 @@ class Player:
             self.create_unit("Batman", 3, ["Justice League", "Bat Family"], 720, 75, png_files),
             self.create_unit("Green Lantern", 3, ["Justice League", "Sorcerer"], 680, 70, png_files),
             self.create_unit("Supergirl", 3, ["Kryptonians", "Snipers"], 740, 78, png_files),
+            self.create_unit("Hugo Strange", 3, ["Mind Games"], 600, 65, png_files),
             # Additional 3-cost units to reach 13
             self.create_unit("Raven", 3, ["Teen Titans", "Sorcerer"], 660, 74, png_files),
             self.create_unit("Cyborg", 3, ["Teen Titans", "Robots", "Bruiser"], 780, 65, png_files),
