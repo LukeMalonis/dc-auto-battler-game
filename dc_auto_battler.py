@@ -56,60 +56,140 @@ LARGE_BENCH_UNIT_SIZE = 100
 
 # Define trait thresholds and descriptions
 TRAIT_INFO = {
-    "Hero": {
-        "thresholds": [2, 4, 6],
-        "description": "Heroes gain bonus damage and health when grouped together",
-        "units": ["Batman", "Robin", "Wonder Woman", "Green Lantern", "Flash", "Nightwing", "Superman", "Aquaman"]
+    "Bat Family": {
+        "thresholds": [3, 5],
+        "description": "Bat Family units gain bonus attack damage and critical strike chance",
+        "bonuses": ["3: +30% Attack Damage", "5: +50% Attack Damage & 25% Crit Chance"]
     },
-    "Villain": {
-        "thresholds": [2, 4, 6],
-        "description": "Villains deal extra damage to Heroes and spread chaos effects",
-        "units": ["Harley Quinn", "Joker", "Catwoman", "Bane", "Darkseid"]
+    "Justice League": {
+        "thresholds": [2, 4, 6, 8],
+        "description": "Justice League members protect each other with shields and bonus stats",
+        "bonuses": ["2: +100 Health to all JL", "4: +200 Health & Shield", "6: +300 Health & Attack Speed", "8: +500 Health & Teamwide Buff"]
     },
-    "Tech": {
-        "thresholds": [2, 3, 4],
-        "description": "Tech units gain shields and bonus abilities from gadgets",
-        "units": ["Batman"]
+    "Rogues Gallery": {
+        "thresholds": [3, 5, 7],
+        "description": "Rogues gain power from losing streaks and chaos effects",
+        "bonuses": ["3: +2 Gold after losing streak", "5: +5 Gold & Bonus Damage", "7: +8 Gold & Chaos Auras"]
     },
-    "Acrobat": {
+    "Teen Titans": {
+        "thresholds": [3, 5],
+        "description": "Teen Titans work together with combo attacks and synergy bonuses",
+        "bonuses": ["3: Combo attacks trigger", "5: Ultimate team attack unlocked"]
+    },
+    "Threat": {
+        "thresholds": [1],
+        "description": "Threat units are powerful solo carries that dominate the battlefield",
+        "bonuses": ["1: Massive solo power boost"]
+    },
+    "Mind Games": {
+        "thresholds": [1],
+        "description": "Hugo Strange manipulates the enemy team and creates unique opportunities",
+        "bonuses": ["1: Choose a special unit to appear in shop"]
+    },
+    "Suicide Squad": {
         "thresholds": [2, 4],
-        "description": "Acrobats dodge attacks and gain movement speed bonuses",
-        "units": ["Harley Quinn", "Robin", "Catwoman", "Nightwing"]
+        "description": "Suicide Squad members have explosive attacks and death effects",
+        "bonuses": ["2: Explosive damage on death", "4: Teamwide attack bonus"]
     },
-    "Chaos": {
-        "thresholds": [1, 3, 5],
-        "description": "Chaos units randomly buff allies or debuff enemies each round",
-        "units": ["Joker"]
+    "Legion of Doom": {
+        "thresholds": [2, 4, 6, 8],
+        "description": "Legion of Doom members grow stronger together with dark powers",
+        "bonuses": ["2: +10% Damage", "4: +25% Damage & Health", "6: +40% Stats", "8: Ultimate Evil Unleashed"]
     },
-    "Atlantean": {
-        "thresholds": [1, 3, 5],
-        "description": "Atlantean units control water and gain massive health bonuses",
-        "units": ["Aquaman"]
+    "Kryptonians": {
+        "thresholds": [2, 4],
+        "description": "Kryptonians draw power from the sun, gaining massive stat bonuses",
+        "bonuses": ["2: +50% Health", "4: +100% Health & Damage"]
     },
-    "Amazon": {
-        "thresholds": [1, 3, 5],
-        "description": "Amazon warriors gain attack speed and critical strike chance",
-        "units": ["Wonder Woman"]
+    "League of Assassins": {
+        "thresholds": [2, 4],
+        "description": "Assassins strike from the shadows with lethal precision",
+        "bonuses": ["2: Execute low health targets", "4: Global execute threshold"]
     },
-    "Corps": {
-        "thresholds": [1, 3, 5],
-        "description": "Green Lantern Corps members create protective constructs",
-        "units": ["Green Lantern"]
+    "Bruiser": {
+        "thresholds": [2, 4, 6],
+        "description": "Bruisers are tough frontliners who gain bonus health and damage reduction",
+        "bonuses": ["2: +200 Health", "4: +500 Health & 20% Damage Reduction", "6: +1000 Health & 40% Damage Reduction"]
     },
-    "Brute": {
-        "thresholds": [1, 3, 5],
-        "description": "Brutes gain damage based on missing health and become unstoppable",
-        "units": ["Bane"]
+    "Form Swapper": {
+        "thresholds": [2, 4],
+        "description": "Form Swappers adapt to battle conditions, changing from tank to damage roles",
+        "bonuses": ["2: Adaptive form switching", "4: Perfect form mastery"]
     },
-    "Speedster": {
-        "thresholds": [1, 3, 5],
-        "description": "Speedsters attack multiple times per turn and dodge everything",
-        "units": ["Flash"]
+    "Snipers": {
+        "thresholds": [2, 4, 6],
+        "description": "Snipers attack from range with increased damage and critical strikes",
+        "bonuses": ["2: +2 Range & 25% Damage", "4: +3 Range & 50% Damage", "6: Global Range & 100% Damage"]
     },
-    "Alien": {
-        "thresholds": [1, 2, 3],
-        "description": "Alien units have unique powerful abilities that scale with level",
-        "units": ["Superman", "Darkseid"]
+    "Robots": {
+        "thresholds": [2, 4],
+        "description": "Robots evolve during combat, gaining permanent stat improvements",
+        "bonuses": ["2: Evolve each round", "4: Ultimate evolution unlocked"]
+    },
+    "Animals": {
+        "thresholds": [2, 4, 6],
+        "description": "Animal units hunt together with pack tactics and ferocious attacks",
+        "bonuses": ["2: Pack hunting bonus", "4: Alpha predator buff", "6: Primal fury unleashed"]
+    },
+    "Sorcerer": {
+        "thresholds": [2, 4, 6, 8],
+        "description": "Sorcerers wield magical powers that manipulate the battlefield",
+        "bonuses": ["2: Basic spells", "4: Advanced magic", "6: Master spells", "8: Arcane supremacy"]
+    },
+    "Justice League Dark": {
+        "thresholds": [2, 4],
+        "description": "Justice League Dark deals with supernatural threats using dark magic",
+        "bonuses": ["2: Dark magic attacks", "4: Supernatural mastery"]
+    },
+    "Duelists": {
+        "thresholds": [2, 4, 6],
+        "description": "Duelists gain attack speed with each attack, becoming faster as combat continues",
+        "bonuses": ["2: 10% stacking attack speed", "4: 20% stacking attack speed", "6: 35% stacking attack speed"]
+    },
+    "Fastest Man Alive": {
+        "thresholds": [1],
+        "description": "The Flash moves and attacks at impossible speeds",
+        "bonuses": ["1: Infinite speed scaling"]
+    },
+    "5 Cost Trait": {
+        "thresholds": [1],
+        "description": "5-cost units have unique game-changing abilities",
+        "bonuses": ["1: Ultimate ability unlocked"]
+    },
+    "Resurrection": {
+        "thresholds": [1],
+        "description": "Solomon Grundy refuses to stay dead, returning to fight again",
+        "bonuses": ["1: Revive once per combat"]
+    },
+    "Lurking In The Waters": {
+        "thresholds": [1],
+        "description": "King Shark ambushes enemies from below with devastating attacks",
+        "bonuses": ["1: Ambush from any water tile"]
+    },
+    "I Have A Question": {
+        "thresholds": [1],
+        "description": "The Question uncovers secrets that give strategic advantages",
+        "bonuses": ["1: Reveal enemy team secrets"]
+    },
+    "Clown Prince of Crime": {
+        "thresholds": [1],
+        "description": "Joker creates chaos and mayhem with unpredictable effects",
+        "bonuses": ["1: Random chaos effects"]
+    },
+    "ADC": {
+        "thresholds": [1],
+        "description": "Attack Damage Carries focus on pure damage output",
+        "bonuses": ["1: Massive damage scaling"]
+    },
+    "Mage": {
+        "thresholds": [1],
+        "description": "Mages wield powerful area-of-effect spells",
+        "bonuses": ["1: Area damage spells"]
+    },
+    "N/A": {
+        "thresholds": [],
+        "description": "No additional trait",
+        "bonuses": []
     }
 }
 
@@ -121,18 +201,26 @@ def get_trait_display(trait_name, current_count):
 
     thresholds = TRAIT_INFO[trait_name]["thresholds"]
 
-    # Find the next threshold
+    if not thresholds:  # For traits like "N/A" with no thresholds
+        return f"{trait_name}"
+
+    # Find current active threshold and next threshold
+    active_threshold = 0
     next_threshold = None
+
     for threshold in thresholds:
-        if current_count < threshold:
-            next_threshold = threshold
+        if current_count >= threshold:
+            active_threshold = threshold
+        else:
+            if next_threshold is None:
+                next_threshold = threshold
             break
 
     if next_threshold is None:
-        # Already at max, show current count
-        return f"{trait_name} ({current_count})"
+        # Max threshold reached
+        return f"{trait_name} ({current_count} - MAX)"
     else:
-        # Show current/next threshold
+        # Show current/next
         return f"{trait_name} ({current_count}/{next_threshold})"
 
 
@@ -205,7 +293,7 @@ def get_unit_border_color(cost):
 
 
 def draw_unit_card(surface, unit, rect, show_details=False, is_shop_unit=False):
-    """Draw a unit card with proper borders and information, optimized for PNGs"""
+    """Draw a unit card with proper borders and information, with PNG support"""
     if not unit:
         return
 
@@ -214,9 +302,25 @@ def draw_unit_card(surface, unit, rect, show_details=False, is_shop_unit=False):
     pygame.draw.rect(surface, Colors.UNIT_BG, rect, border_radius=8)
     pygame.draw.rect(surface, border_color, rect, 3, border_radius=8)
 
-    # PNG placeholder takes up entire card area (minus border)
+    # Draw PNG if available
     image_area = pygame.Rect(rect.x + 3, rect.y + 3, rect.width - 6, rect.height - 6)
-    pygame.draw.rect(surface, (40, 40, 40), image_area, border_radius=6)
+
+    if unit.png_surface is not None:
+        try:
+            # Scale PNG to fit the card
+            png_rect = unit.png_surface.get_rect()
+            scale_factor = min(image_area.width / png_rect.width, image_area.height / png_rect.height) * 0.8
+            new_size = (int(png_rect.width * scale_factor), int(png_rect.height * scale_factor))
+            scaled_png = pygame.transform.smoothscale(unit.png_surface, new_size)
+            png_pos = (rect.centerx - new_size[0] // 2, rect.centery - new_size[1] // 2)
+            surface.blit(scaled_png, png_pos)
+        except Exception as e:
+            # Fallback to placeholder if PNG fails
+            pygame.draw.rect(surface, (40, 40, 40), image_area, border_radius=6)
+            print(f"Error drawing PNG for {unit.name}: {e}")
+    else:
+        # Placeholder
+        pygame.draw.rect(surface, (40, 40, 40), image_area, border_radius=6)
 
     # Font sizes based on card size
     if is_shop_unit:
@@ -272,14 +376,14 @@ def draw_unit_card(surface, unit, rect, show_details=False, is_shop_unit=False):
         trait_x = rect.x + 8
         trait_y = rect.y + 45  # Start below the star circle
         for i, trait in enumerate(unit.traits[:3]):  # Show up to 3 traits
-            trait_text = font_small.render(trait, True, Colors.BUTTON_TEXT)
-            trait_outline = font_small.render(trait, True, (0, 0, 0))
-            trait_pos = (trait_x, trait_y + i * 14)
-            # Draw outline for readability over PNG
-            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
-                surface.blit(trait_outline, (trait_pos[0] + dx, trait_pos[1] + dy))
-            surface.blit(trait_text, trait_pos)
-
+            if trait != "N/A":  # Skip N/A traits
+                trait_text = font_small.render(trait, True, Colors.BUTTON_TEXT)
+                trait_outline = font_small.render(trait, True, (0, 0, 0))
+                trait_pos = (trait_x, trait_y + i * 14)
+                # Draw outline for readability over PNG
+                for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                    surface.blit(trait_outline, (trait_pos[0] + dx, trait_pos[1] + dy))
+                surface.blit(trait_text, trait_pos)
 
 # Drawing functions
 def draw_main_menu(screen, buttons, mouse_pos, fonts, screen_width, screen_height):
@@ -537,37 +641,45 @@ def draw_ui_elements(screen, player, buttons, mouse_pos, fonts, screen_width, sc
 
 
 def draw_traits_panel(screen, player, screen_width, screen_height, fonts, mouse_pos):
-    panel_width = 260
-    panel_x = 15
-    panel_y = 120
-    panel_height = 240
+    panel_width = 300  # Increased width
+    panel_x = 10
+    panel_y = 100
+    panel_height = screen_height - 200  # Much taller to fit all traits
 
+    # Draw background
     pygame.draw.rect(screen, Colors.TRAIT_BG, (panel_x, panel_y, panel_width, panel_height), border_radius=8)
+    pygame.draw.rect(screen, Colors.BUTTON_TEXT, (panel_x, panel_y, panel_width, panel_height), 2, border_radius=8)
 
-    # Larger font for title
-    font_title = pygame.font.SysFont('arial', 18, bold=True)
+    # Title
+    font_title = pygame.font.SysFont('arial', 20, bold=True)
     trait_title = font_title.render("Active Traits", True, Colors.BUTTON_TEXT)
     screen.blit(trait_title, (panel_x + 15, panel_y + 12))
 
-    # Larger font for traits
+    # Traits with proper formatting
     font_trait = pygame.font.SysFont('arial', 16)
     y_offset = 50
     hovered_trait = None
 
     if player.traits:
         for trait, count in player.traits.items():
-            trait_rect = pygame.Rect(panel_x + 15, panel_y + y_offset, panel_width - 30, 30)
+            if trait == "N/A":  # Skip N/A traits
+                continue
 
-            # Check if mouse is hovering over this trait
+            trait_rect = pygame.Rect(panel_x + 10, panel_y + y_offset, panel_width - 20, 28)
+
+            # Check if mouse is hovering
             if trait_rect.collidepoint(mouse_pos):
                 hovered_trait = trait
-                # Highlight the trait when hovering
                 pygame.draw.rect(screen, (100, 100, 140), trait_rect, border_radius=6)
 
             trait_display = get_trait_display(trait, count)
             trait_text = font_trait.render(trait_display, True, Colors.BUTTON_TEXT)
-            screen.blit(trait_text, (panel_x + 20, panel_y + y_offset + 6))
-            y_offset += 35
+            screen.blit(trait_text, (panel_x + 15, panel_y + y_offset + 6))
+            y_offset += 32
+
+            # Break if we're running out of space
+            if y_offset > panel_height - 40:
+                break
     else:
         no_traits = font_trait.render("No active traits", True, Colors.BUTTON_TEXT)
         screen.blit(no_traits, (panel_x + 20, panel_y + 55))
@@ -578,24 +690,26 @@ def draw_traits_panel(screen, player, screen_width, screen_height, fonts, mouse_
 
 
 def draw_info_panel(screen, player, screen_width, screen_height, fonts):
-    panel_width = 250
-    panel_x = screen_width - panel_width - 15
-    panel_y = 120
-    panel_height = 180
+    panel_width = 280  # Increased width
+    panel_x = screen_width - panel_width - 10
+    panel_y = 100
+    panel_height = screen_height - 200  # Much taller
 
+    # Draw background
     pygame.draw.rect(screen, Colors.INFO_BG, (panel_x, panel_y, panel_width, panel_height), border_radius=8)
+    pygame.draw.rect(screen, Colors.BUTTON_TEXT, (panel_x, panel_y, panel_width, panel_height), 2, border_radius=8)
 
-    # Larger font for title
-    font_title = pygame.font.SysFont('arial', 18, bold=True)
+    # Title
+    font_title = pygame.font.SysFont('arial', 20, bold=True)
     info_title = font_title.render("Game Info", True, Colors.BUTTON_TEXT)
     screen.blit(info_title, (panel_x + 15, panel_y + 12))
 
-    # Larger font for info
+    # Info lines with larger font
     font_info = pygame.font.SysFont('arial', 16)
 
     income = player.calculate_income()
     board_units = sum(1 for row in player.board for unit in row if unit is not None)
-    max_units = GameConstants.MAX_BOARD_UNITS[player.level - 1]
+    max_units = GameConstants.MAX_BOARD_UNITS[player.level - 1] if player.level <= len(GameConstants.MAX_BOARD_UNITS) else 10
     bench_units = sum(1 for u in player.bench if u is not None)
 
     info_lines = [
@@ -603,14 +717,16 @@ def draw_info_panel(screen, player, screen_width, screen_height, fonts):
         f"Board: {board_units}/{max_units}",
         f"Bench: {bench_units}/9",
         f"Level: {player.level}",
-        f"Round: {player.round}"
+        f"Round: {player.round}",
+        f"Gold: {player.gold}",
+        f"XP: {player.xp}/{player.xp_to_level[player.level-1] if player.level < 9 else 'MAX'}"
     ]
 
     y_offset = 50
     for line in info_lines:
         info_text = font_info.render(line, True, Colors.BUTTON_TEXT)
         screen.blit(info_text, (panel_x + 20, panel_y + y_offset))
-        y_offset += 32
+        y_offset += 30
 
 
 def main():
