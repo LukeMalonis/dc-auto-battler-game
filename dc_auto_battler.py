@@ -51,7 +51,7 @@ def save_config(config):
 
 # Larger sizes for better readability and future PNG art
 LARGE_UNIT_SIZE = 120
-LARGE_SHOP_UNIT_SIZE = 140  # Made shop units even bigger for easier clicking
+LARGE_SHOP_UNIT_SIZE = 180  # Made shop units even bigger for easier clicking
 LARGE_BENCH_UNIT_SIZE = 100
 
 # Define trait thresholds and descriptions
@@ -689,16 +689,16 @@ def draw_bench(screen, player, screen_width, screen_height, drag_state, drag_uni
 
 
 def draw_shop(screen, player, screen_width, screen_height, drag_state, drag_source_type, mouse_pos):
-    shop_width = GameConstants.SHOP_SLOTS * LARGE_SHOP_UNIT_SIZE
+    shop_width = GameConstants.SHOP_SLOTS * (LARGE_SHOP_UNIT_SIZE + 20)
     shop_x = (screen_width - shop_width) // 2
-    shop_y = screen_height - 180  # Adjusted for larger shop units
+    shop_y = screen_height - 40  # Adjusted for larger shop units
 
     # Larger shop background
     pygame.draw.rect(screen, Colors.SHOP_BG, (shop_x - 15, shop_y - 15,
                                               shop_width + 30, LARGE_SHOP_UNIT_SIZE + 30), border_radius=10)
 
     for i in range(GameConstants.SHOP_SLOTS):
-        rect = pygame.Rect(shop_x + i * LARGE_SHOP_UNIT_SIZE, shop_y,
+        rect = pygame.Rect(shop_x + i * (LARGE_SHOP_UNIT_SIZE + 20), shop_y,
                            LARGE_SHOP_UNIT_SIZE - 6, LARGE_SHOP_UNIT_SIZE - 6)
 
         # Highlight shop slots when hovering (not dragging from shop)
@@ -755,7 +755,7 @@ def draw_traits_panel(screen, player, screen_width, screen_height, fonts, mouse_
     panel_width = 300  # Increased width
     panel_x = 10
     panel_y = 180
-    panel_height = screen_height - 200  # Much taller to fit all traits
+    panel_height = screen_height - 320  # Much taller to fit all traits
 
     # Draw background
     pygame.draw.rect(screen, Colors.TRAIT_BG, (panel_x, panel_y, panel_width, panel_height), border_radius=8)
@@ -804,7 +804,7 @@ def draw_info_panel(screen, player, screen_width, screen_height, fonts):
     panel_width = 280  # Increased width
     panel_x = screen_width - panel_width - 10
     panel_y = 180
-    panel_height = screen_height - 200  # Much taller
+    panel_height = screen_height - 320  # Much taller
 
     # Draw background
     pygame.draw.rect(screen, Colors.INFO_BG, (panel_x, panel_y, panel_width, panel_height), border_radius=8)

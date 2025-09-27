@@ -305,15 +305,13 @@ class Player:
 
     def check_combinations(self):
         """
-        Repeatedly combine units on bench and board if there are at least 3 of the same name and star level,
-        including after a unit is combined and upgraded (allowing for chain combinations without further user action).
-        This version ensures that after a unit is combined and starred up, the process IMMEDIATELY checks if the new
-        higher-star unit is eligible to combine again (e.g., 3x 2-stars instantly become a 3-star).
+        Combine units so that the new unit appears in the board slot if any combining units are on the board,
+        otherwise on the bench. Only the actual combining units are considered.
         """
         while True:
             unit_counts = {}
 
-            # Count all units and their locations (bench or board)
+            # Count all units and their locations
             for i, unit in enumerate(self.bench):
                 if unit:
                     key = (unit.name, unit.stars)
@@ -329,16 +327,11 @@ class Player:
                         unit_counts[key].append(('board', (x, y), unit))
 
             did_combine = False
-            # Loop through all star levels, lowest to highest, to catch chain reactions
-            # Sort by stars, so 1-star combines before 2-star, etc.
             for (name, stars) in sorted(unit_counts.keys(), key=lambda t: t[1]):
                 locations = unit_counts[(name, stars)]
                 while len(locations) >= 3 and stars < 3:
-                    # Always pull fresh references
-                    # Find three live units at this star level
-                    found_units = []
-                    slot_refs = []
-
+                    # Find three *actual* units
+                    found = []
                     for loc in locations:
                         if loc[0] == 'bench':
                             unit = self.bench[loc[1]]
@@ -346,25 +339,37 @@ class Player:
                             x, y = loc[1]
                             unit = self.board[y][x]
                         if unit and unit.name == name and unit.stars == stars:
-                            found_units.append(unit)
-                            slot_refs.append(loc)
-                        if len(found_units) == 3:
+                            found.append((loc, unit))
+                        if len(found) == 3:
                             break
 
-                    if len(found_units) < 3:
-                        break  # Defensive
+                    if len(found) < 3:
+                        break
 
-                    # Upgrade the first unit
-                    base_unit = found_units[0]
-                    # Remove the other two from play
-                    for loc in slot_refs[1:]:
+                    # Decide: where does the new unit go?
+                    board_locs = [loc for loc, _ in found if loc[0] == 'board']
+                    if board_locs:
+                        # Prefer first board unit as the base
+                        base_loc = board_locs[0]
+                        base_index = [i for i, (loc, _) in enumerate(found) if loc == base_loc][0]
+                    else:
+                        # Otherwise, use first bench unit
+                        base_loc = found[0][0]
+                        base_index = 0
+
+                    base_unit = found[base_index][1]
+
+                    # Remove other two units (not base)
+                    for i, (loc, _) in enumerate(found):
+                        if i == base_index:
+                            continue
                         if loc[0] == 'bench':
                             self.bench[loc[1]] = None
                         else:
                             x, y = loc[1]
                             self.board[y][x] = None
 
-                    # Star up the base unit
+                    # Star up the base unit!
                     base_unit.stars += 1
                     base_unit.health = int(base_unit.health * 1.8)
                     base_unit.damage = int(base_unit.damage * 1.8)
@@ -374,9 +379,7 @@ class Player:
 
                     self.calculate_traits()
                     did_combine = True
-
-                    # After a combine, break to restart from scratch (so a new 2-star can immediately chain up to 3-star)
-                    break
+                    break  # Start over for chain combining
 
                 if did_combine:
                     break
@@ -410,42 +413,16 @@ class Player:
         return count >= 2
 
     def buy_and_combine(self, shop_index):
-        """Buy a unit and automatically combine it with existing matching units"""
+        """Buy a unit, add to bench, then run full auto-combine check for all units (including new chains)."""
         if 0 <= shop_index < len(self.shop) and self.shop[shop_index]:
             unit = self.shop[shop_index]
             if self.gold >= unit.cost:
-                units_to_combine = []
-
-                for i, bench_unit in enumerate(self.bench):
-                    if bench_unit and bench_unit.name == unit.name and bench_unit.stars == unit.stars:
-                        units_to_combine.append(('bench', i, bench_unit))
-
-                for y, row in enumerate(self.board):
-                    for x, board_unit in enumerate(row):
-                        if board_unit and board_unit.name == unit.name and board_unit.stars == unit.stars:
-                            units_to_combine.append(('board', (x, y), board_unit))
-
-                if len(units_to_combine) >= 2:
-                    base_unit = units_to_combine[0][2]
-                    second_unit = units_to_combine[1][2]
-
-                    base_unit.combine(second_unit)
-
-                    if units_to_combine[1][0] == 'bench':
-                        self.bench[units_to_combine[1][1]] = None
-                    else:
-                        x, y = units_to_combine[1][1]
-                        self.board[y][x] = None
-
-                    self.gold -= unit.cost
-                    self.shop[shop_index] = None
-                    self.calculate_traits()
-                    return True
-
-                # If no combine, just buy as normal (ensure PNG transfer)
+                # Place unit on bench like buy_unit (preserve PNG)
                 for i, bench_unit in enumerate(self.bench):
                     if bench_unit is None:
-                        new_unit = self.create_unit(unit.name, unit.cost, unit.traits.copy(), unit.health, unit.damage, [])
+                        # Create a new instance so we don't reference the shop unit
+                        new_unit = self.create_unit(unit.name, unit.cost, unit.traits.copy(), unit.health, unit.damage,
+                                                    [])
                         if unit.png_name:
                             new_unit.png_name = unit.png_name
                         if unit.png_surface:
@@ -453,6 +430,7 @@ class Player:
                         self.bench[i] = new_unit
                         self.gold -= unit.cost
                         self.shop[shop_index] = None
+                        # CRITICAL: call the same combination checker as everywhere else
                         self.check_combinations()
                         return True
         return False
