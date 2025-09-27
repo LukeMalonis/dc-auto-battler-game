@@ -2,6 +2,8 @@ import random
 import pygame
 import os
 
+# --- GLOBAL PNG CACHE ---
+UNIT_IMAGE_CACHE = {}
 
 class Unit:
     def __init__(self, name, cost, traits, health, damage, png_name=None):
@@ -17,34 +19,23 @@ class Unit:
         self.load_png()
 
     def load_png(self):
-        """Load PNG image if available"""
+        """Load PNG image if available, using a global cache for speed."""
         if self.png_name:
-            print(f"Attempting to load PNG for {self.name}: {self.png_name}")  # Debug
-
-            # Try different possible paths
-            possible_paths = [
-                f"assets/{self.png_name}",
-                f"unit_pngs/{self.png_name}",
-                self.png_name,
-                f"./assets/{self.png_name}",
-                f"./unit_pngs/{self.png_name}"
-            ]
-
-            for path in possible_paths:
-                if os.path.exists(path):
-                    try:
-                        print(f"Found PNG at: {path}")  # Debug
-                        original_image = pygame.image.load(path).convert_alpha()
-                        # Scale to appropriate size
-                        self.png_surface = pygame.transform.smoothscale(original_image, (100, 100))
-                        print(f"Successfully loaded PNG for {self.name}")  # Debug
-                        return
-                    except Exception as e:
-                        print(f"Failed to load image {path}: {e}")
-
-            print(f"PNG not found for {self.name}. Tried: {possible_paths}")  # Debug
-        else:
-            print(f"No PNG name specified for {self.name}")  # Debug
+            path = f"assets/{self.png_name}"
+            if self.png_name in UNIT_IMAGE_CACHE:
+                self.png_surface = UNIT_IMAGE_CACHE[self.png_name]
+                return
+            if os.path.exists(path):
+                try:
+                    original_image = pygame.image.load(path).convert_alpha()
+                    scaled_png = pygame.transform.smoothscale(original_image, (100, 100))
+                    UNIT_IMAGE_CACHE[self.png_name] = scaled_png
+                    self.png_surface = scaled_png
+                except Exception as e:
+                    print(f"Failed to load image {path}: {e}")
+            else:
+                print(f"PNG not found for {self.name}: {path}")
+        # else: do nothing
 
     def __eq__(self, other):
         return self.id == other.id if other else False

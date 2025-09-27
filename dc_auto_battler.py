@@ -439,25 +439,21 @@ def draw_hugo_strange_choice(screen, choices, buttons, mouse_pos, screen_width, 
 
 
 def replace_hugo_strange_units(player, replacement_name):
-    """Replace all Hugo Strange units with the selected character"""
     from unit import Unit
     import os
 
-    # Get PNG files for the new unit
     png_files = []
     if os.path.exists("assets"):
         png_files = os.listdir("assets")
 
-    # Replace Hugo Strange on board
     for y in range(GameConstants.BOARD_HEIGHT):
         for x in range(GameConstants.BOARD_WIDTH):
             if player.board[y][x] and player.board[y][x].name == "Hugo Strange":
-                # Create replacement unit (use similar stats to Hugo Strange but new name/traits)
                 old_unit = player.board[y][x]
                 new_unit = Unit(
                     replacement_name,
-                    old_unit.cost,
-                    get_replacement_traits(replacement_name),
+                    3,  # Always 3 cost
+                    ["Mind Games"],
                     old_unit.health,
                     old_unit.damage,
                     get_replacement_png_name(replacement_name, png_files)
@@ -465,14 +461,13 @@ def replace_hugo_strange_units(player, replacement_name):
                 new_unit.stars = old_unit.stars
                 player.board[y][x] = new_unit
 
-    # Replace Hugo Strange on bench
     for i in range(len(player.bench)):
         if player.bench[i] and player.bench[i].name == "Hugo Strange":
             old_unit = player.bench[i]
             new_unit = Unit(
                 replacement_name,
-                old_unit.cost,
-                get_replacement_traits(replacement_name),
+                3,  # Always 3 cost
+                ["Mind Games"],
                 old_unit.health,
                 old_unit.damage,
                 get_replacement_png_name(replacement_name, png_files)
@@ -480,28 +475,20 @@ def replace_hugo_strange_units(player, replacement_name):
             new_unit.stars = old_unit.stars
             player.bench[i] = new_unit
 
-    # Update traits
     player.calculate_traits()
 
 
 def get_replacement_traits(name):
-    """Get traits for Hugo Strange replacements"""
-    traits_map = {
-        "Mr. Freeze": ["Bruiser"],
-        "Poison Ivy": ["Mage"],
-        "Two Face": ["ADC"]
-    }
-    return traits_map.get(name, ["N/A"])
+    # All replacements now just have Mind Games
+    return ["Mind Games"]
 
 
 def get_replacement_png_name(name, png_files):
-    """Find PNG file for replacement unit"""
     name_mapping = {
         "Mr. Freeze": "Mr._Freeze.png",
         "Poison Ivy": "Poison_Ivy.png",
         "Two Face": "Two_Face.png"
     }
-
     png_name = name_mapping.get(name)
     if png_name and png_name in png_files:
         return png_name
@@ -1046,11 +1033,51 @@ def main():
                                                 # Empty spot - just move
                                                 if player.move_unit_to_board(drag_source_index, x, y):
                                                     player.bench[drag_source_index] = None
+                                                    # Auto-trigger Hugo UI if Hugo Strange was just placed
+                                                    if (player.board[y][x] and player.board[y][x].name == "Hugo Strange"
+                                                            and not hugo_strange_choice_active
+                                                            and not hasattr(player, 'hugo_strange_activated')):
+                                                        hugo_strange_choice_active = True
+                                                        button_width = 550
+                                                        button_height = 70
+                                                        start_y = (screen_height - 500) // 2 + 150
+                                                        hugo_strange_choice_buttons.clear()
+                                                        for i, choice in enumerate(hugo_strange_choices):
+                                                            button_y = start_y + i * 90
+                                                            button = Button(
+                                                                (screen_width - button_width) // 2,
+                                                                button_y,
+                                                                button_width,
+                                                                button_height,
+                                                                f"SELECT: {choice}",
+                                                                pygame.font.SysFont('arial', 20, bold=True)
+                                                            )
+                                                            hugo_strange_choice_buttons.append(button)
                                             else:
                                                 # Swap bench unit with board unit
                                                 player.board[y][x] = drag_unit
                                                 player.bench[drag_source_index] = target_unit
                                                 player.calculate_traits()
+                                                # Auto-trigger Hugo UI if Hugo Strange was just placed
+                                                if (player.board[y][x] and player.board[y][x].name == "Hugo Strange"
+                                                        and not hugo_strange_choice_active
+                                                        and not hasattr(player, 'hugo_strange_activated')):
+                                                    hugo_strange_choice_active = True
+                                                    button_width = 550
+                                                    button_height = 70
+                                                    start_y = (screen_height - 500) // 2 + 150
+                                                    hugo_strange_choice_buttons.clear()
+                                                    for i, choice in enumerate(hugo_strange_choices):
+                                                        button_y = start_y + i * 90
+                                                        button = Button(
+                                                            (screen_width - button_width) // 2,
+                                                            button_y,
+                                                            button_width,
+                                                            button_height,
+                                                            f"SELECT: {choice}",
+                                                            pygame.font.SysFont('arial', 20, bold=True)
+                                                        )
+                                                        hugo_strange_choice_buttons.append(button)
                                         elif drag_source_type == 'board':
                                             # Move from board to different board position (swap)
                                             source_x, source_y = drag_source_index
@@ -1060,6 +1087,26 @@ def main():
                                             player.board[y][x] = drag_unit
                                             player.board[source_y][source_x] = target_unit
                                             player.calculate_traits()
+                                            # Auto-trigger Hugo UI if Hugo Strange was just placed
+                                            if (player.board[y][x] and player.board[y][x].name == "Hugo Strange"
+                                                    and not hugo_strange_choice_active
+                                                    and not hasattr(player, 'hugo_strange_activated')):
+                                                hugo_strange_choice_active = True
+                                                button_width = 550
+                                                button_height = 70
+                                                start_y = (screen_height - 500) // 2 + 150
+                                                hugo_strange_choice_buttons.clear()
+                                                for i, choice in enumerate(hugo_strange_choices):
+                                                    button_y = start_y + i * 90
+                                                    button = Button(
+                                                        (screen_width - button_width) // 2,
+                                                        button_y,
+                                                        button_width,
+                                                        button_height,
+                                                        f"SELECT: {choice}",
+                                                        pygame.font.SysFont('arial', 20, bold=True)
+                                                    )
+                                                    hugo_strange_choice_buttons.append(button)
                                         board_dropped = True
                                         break
                                 if board_dropped:
@@ -1176,11 +1223,9 @@ def main():
                             hugo_strange_selected_option = hugo_strange_choices[i]
                             print(f"Hugo Strange selected: {hugo_strange_selected_option}")
 
-                            # Replace all Hugo Strange units on board and bench
                             replace_hugo_strange_units(player, hugo_strange_selected_option)
-
-                            # Set flag so this doesn't trigger again
                             player.hugo_strange_activated = True
+                            player.hugo_replacement_choice = hugo_strange_selected_option  # <-- Add this line!
                             hugo_strange_choice_active = False
                             hugo_strange_choice_buttons.clear()
                             break
