@@ -137,8 +137,8 @@ TRAIT_INFO = {
     },
     "Sorcerer": {
         "thresholds": [2, 4, 6, 8],
-        "description": "Sorcerers wield magical powers that manipulate the battlefield",
-        "bonuses": ["2: Basic spells", "4: Advanced magic", "6: Master spells", "8: Arcane supremacy"]
+        "description": "Sorcerers wield magical powers that manipulate the battlefield and give attack power",
+        "bonuses": ["2: 15%", "4: 25%", "6: 35%", "8: 50% + 1 Mana Regeneration"]
     },
     "Justice League Dark": {
         "thresholds": [2, 4],
