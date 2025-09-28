@@ -3,6 +3,7 @@ import sys
 import json
 import os
 import random
+import math
 
 # Import game modules
 from game_constants import GameConstants, Colors, GameState, DragState
@@ -575,9 +576,13 @@ def draw_sell_zone(screen, screen_width, screen_height, is_highlighted):
     return sell_zone
 
 
-def draw_single_player_game(screen, player, buttons, mouse_pos, fonts, screen_width, screen_height, drag_state,
+def draw_single_player_game(screen, player, opponent, buttons, mouse_pos, fonts, screen_width, screen_height,
+                            drag_state,
                             drag_unit, drag_pos, drag_source_type):
     screen.fill(Colors.BACKGROUND)
+
+    # Draw opponent's hex board at the top
+    draw_opponent_hex_board(screen, opponent, screen_width, screen_height)
 
     # Draw sell zone ONLY when dragging a unit (but not from shop)
     is_dragging_to_sell = (drag_state != DragState.NONE and
@@ -587,7 +592,7 @@ def draw_single_player_game(screen, player, buttons, mouse_pos, fonts, screen_wi
     if drag_state != DragState.NONE and drag_source_type != 'shop':
         draw_sell_zone(screen, screen_width, screen_height, is_dragging_to_sell)
 
-    # Draw game layout
+    # Draw game layout with hex board
     draw_board(screen, player, screen_width, screen_height, drag_state, drag_unit, drag_pos, mouse_pos)
     draw_bench(screen, player, screen_width, screen_height, drag_state, drag_unit, drag_pos, mouse_pos)
     draw_shop(screen, player, screen_width, screen_height, drag_state, drag_source_type, mouse_pos)
@@ -623,40 +628,116 @@ def draw_single_player_game(screen, player, buttons, mouse_pos, fonts, screen_wi
             else:
                 draw_unit_card(screen, drag_unit, unit_rect, show_details=True)
 
+def draw_opponent_hex_board(screen, opponent, screen_width, screen_height):
+    """Draw just the opponent's hex board at the top"""
+    from hex_board import HexBoard
+    opponent_board = HexBoard(screen_width, screen_height, is_player_board=False)
+    # Make opponent board smaller and position properly
+    opponent_board.hex_size = 30  # Smaller than player board
+    opponent_board.calculate_board_position()  # Recalculate with proper positioning
+    if hasattr(opponent, 'board') and opponent.board:
+        opponent_board.draw(screen, opponent.board)
 
 def draw_board(screen, player, screen_width, screen_height, drag_state, drag_unit, drag_pos, mouse_pos):
-    board_width = GameConstants.BOARD_WIDTH * LARGE_UNIT_SIZE
-    board_height = GameConstants.BOARD_HEIGHT * LARGE_UNIT_SIZE
-    board_x = (screen_width - board_width) // 2
-    board_y = screen_height // 6  # Moved up to accommodate larger units
+    hex_size = 45  # Increased from 35 to make bigger
+    rows = 4
+    cols = 7
 
-    pygame.draw.rect(screen, Colors.BOARD_BG, (board_x - 10, board_y - 10,
-                                               board_width + 20, board_height + 20), border_radius=10)
+    # Calculate board dimensions
+    hex_width = hex_size * math.sqrt(3)
+    hex_height = hex_size * 2
+    total_width = (cols + 0.5) * hex_width
+    total_height = (rows * 0.75 + 0.25) * hex_height
 
-    for y in range(GameConstants.BOARD_HEIGHT):
-        for x in range(GameConstants.BOARD_WIDTH):
-            rect = pygame.Rect(board_x + x * LARGE_UNIT_SIZE,
-                               board_y + y * LARGE_UNIT_SIZE,
-                               LARGE_UNIT_SIZE - 4, LARGE_UNIT_SIZE - 4)
+    # Position the player's hex board higher up on screen (above bench area)
+    board_x = (screen_width - total_width) // 2
+    board_y = screen_height // 3  # Much higher up - was screen_height - total_height - 250
 
-            # Highlight if mouse is over and we can drop here
-            can_drop_here = (player.board[y][x] is None or
-                             (drag_state != DragState.NONE and drag_unit != player.board[y][x]))
+    # Draw board background
+    pygame.draw.rect(screen, Colors.BOARD_BG, (board_x - 15, board_y - 15,
+                                               total_width + 30, total_height + 30), border_radius=12)
 
-            is_highlighted = (drag_state != DragState.NONE and
-                              rect.collidepoint(mouse_pos) and
-                              can_drop_here)
+    # Store hex positions for click detection
+    hex_positions = []
 
-            # Draw board slot
-            slot_color = Colors.BUTTON_HOVER if is_highlighted else Colors.UNIT_BG
-            pygame.draw.rect(screen, slot_color, rect, border_radius=8)
-            pygame.draw.rect(screen, Colors.BUTTON_TEXT, rect, 1, border_radius=8)
+    for row in range(rows):
+        for col in range(cols):
+            # TFT-style zigzag: even rows offset right
+            x_offset = hex_width / 2 if row % 2 == 0 else 0
+            center_x = board_x + col * hex_width + x_offset
+            center_y = board_y + row * hex_height * 0.75
+
+            # Get hexagon corners
+            corners = []
+            for i in range(6):
+                angle_deg = 60 * i - 30
+                angle_rad = math.pi / 180 * angle_deg
+                x = center_x + hex_size * math.cos(angle_rad)
+                y = center_y + hex_size * math.sin(angle_rad)
+                corners.append((x, y))
+
+            # Check if this hex is highlighted for dragging
+            mouse_x, mouse_y = mouse_pos
+            is_highlighted = False
+            if drag_state != DragState.NONE:
+                # Simple distance check for hex hover
+                distance = math.sqrt((mouse_x - center_x) ** 2 + (mouse_y - center_y) ** 2)
+                is_highlighted = (distance <= hex_size * 0.9 and
+                                  (player.board[row][col] is None or drag_unit != player.board[row][col]))
+
+            # Draw hexagon
+            hex_color = Colors.BUTTON_HOVER if is_highlighted else (50, 50, 80)
+            pygame.draw.polygon(screen, hex_color, corners)
+            pygame.draw.polygon(screen, (100, 150, 255), corners, 2)
+
+            # Store hex position for unit drawing and click detection
+            hex_positions.append((row, col, center_x, center_y, corners))
 
             # Draw unit if present
-            if player.board[y][x]:
-                unit = player.board[y][x]
-                draw_unit_card(screen, unit, rect)
+            if player.board[row][col]:
+                unit = player.board[row][col]
+                draw_hex_unit(screen, unit, center_x, center_y)
 
+    return board_x, board_y, hex_size, rows, cols  # Return positioning info
+
+
+def draw_hex_unit(screen, unit, center_x, center_y):
+    """Draw a unit on a hexagon with PNG support"""
+    # Draw unit circle background
+    border_color = get_unit_border_color(unit.cost)
+    pygame.draw.circle(screen, Colors.UNIT_BG, (int(center_x), int(center_y)), 30)  # Slightly larger
+    pygame.draw.circle(screen, border_color, (int(center_x), int(center_y)), 30, 3)
+
+    # Draw PNG if available
+    if unit.png_surface is not None:
+        try:
+            # Scale PNG to fit the hex circle
+            png_size = 50  # Size for hex units
+            scaled_png = pygame.transform.smoothscale(unit.png_surface, (png_size, png_size))
+            png_rect = scaled_png.get_rect(center=(int(center_x), int(center_y)))
+            screen.blit(scaled_png, png_rect)
+        except Exception as e:
+            # Fallback to letter if PNG fails
+            print(f"Error drawing PNG for {unit.name}: {e}")
+            draw_unit_letter(screen, unit, center_x, center_y)
+    else:
+        # No PNG available, draw letter
+        draw_unit_letter(screen, unit, center_name, center_y)
+
+
+def draw_unit_letter(screen, unit, center_x, center_y):
+    """Draw unit letter as fallback"""
+    font = pygame.font.SysFont('arial', 14, bold=True)
+    letter = font.render(unit.name[0], True, Colors.BUTTON_TEXT)
+    text_rect = letter.get_rect(center=(int(center_x), int(center_y)))
+    screen.blit(letter, text_rect)
+
+    # Draw star count for upgraded units
+    if unit.stars > 1:
+        star_font = pygame.font.SysFont('arial', 10, bold=True)
+        star_text = star_font.render(str(unit.stars), True, (255, 215, 0))
+        star_rect = star_text.get_rect(center=(int(center_x) + 20, int(center_y) - 20))
+        screen.blit(star_text, star_rect)
 
 def draw_bench(screen, player, screen_width, screen_height, drag_state, drag_unit, drag_pos, mouse_pos):
     bench_slots = GameConstants.BENCH_SLOTS
@@ -673,7 +754,7 @@ def draw_bench(screen, player, screen_width, screen_height, drag_state, drag_uni
     bench_width = bench_slots * bench_card_size + (bench_slots - 1) * card_gap
     bench_x = (screen_width - bench_width) // 2
     # Place the bench above shop row, tweak - bench_card_size - XX for vertical alignment
-    bench_y = screen_height - shop_card_size - bench_card_size - 80  # 80px gap, tweak as needed
+    bench_y = screen_height - shop_card_size - 90  # 80px gap, tweak as needed
 
     pygame.draw.rect(screen, Colors.BENCH_BG, (bench_x - 10, bench_y - 10,
                                                bench_width + 20, bench_card_size + 20), border_radius=8)
@@ -708,7 +789,7 @@ def draw_shop(screen, player, screen_width, screen_height, drag_state, drag_sour
     card_gap = 20
     shop_width = shop_slots * shop_card_size + (shop_slots - 1) * card_gap
     shop_x = (screen_width - shop_width) // 2
-    shop_y = screen_height - shop_card_size - 60  # 60px above bottom
+    shop_y = screen_height - 150 # 60px above bottom
 
     pygame.draw.rect(
         screen, Colors.SHOP_BG,
@@ -870,6 +951,12 @@ def main():
     # Initialize player for single player game
     player = Player()
 
+    # Create opponent (temporary placeholder)
+    opponent = Player()
+    opponent.name = "Opponent"
+    # Initialize empty board for opponent
+    opponent.board = [[None for _ in range(GameConstants.BOARD_WIDTH)] for _ in range(GameConstants.BOARD_HEIGHT)]
+
     # Drag state
     drag_state = DragState.NONE
     drag_unit = None
@@ -943,7 +1030,7 @@ def main():
                         bench_card_size = (shop_width - (bench_slots - 1) * card_gap) // bench_slots
                         bench_width = bench_slots * bench_card_size + (bench_slots - 1) * card_gap
                         bench_x = (screen_width - bench_width) // 2
-                        bench_y = screen_height - shop_card_size - bench_card_size - 80  # match draw_bench
+                        bench_y = screen_height - shop_card_size - 90  # match draw_bench
 
                         for i in range(bench_slots):
                             bench_rect = pygame.Rect(
@@ -960,25 +1047,40 @@ def main():
                                 break
 
                         # Check board for drag start
+                        # Check board for drag start (hexagon version)
                         if drag_state == DragState.NONE:
-                            board_width = GameConstants.BOARD_WIDTH * LARGE_UNIT_SIZE
-                            board_x = (screen_width - board_width) // 2
-                            board_y = screen_height // 6
+                            # Calculate hex board position (same as in draw_board function)
+                            hex_size = 45  # Match the new size
+                            rows, cols = 4, 7
+                            hex_width = hex_size * math.sqrt(3)
+                            hex_height = hex_size * 2
+                            total_width = (cols + 0.5) * hex_width
+                            total_height = (rows * 0.75 + 0.25) * hex_height
+                            board_x = (screen_width - total_width) // 2
+                            board_y = screen_height // 3  # Match the new position
 
-                            for y in range(GameConstants.BOARD_HEIGHT):
-                                for x in range(GameConstants.BOARD_WIDTH):
-                                    board_rect = pygame.Rect(board_x + x * LARGE_UNIT_SIZE,
-                                                             board_y + y * LARGE_UNIT_SIZE,
-                                                             LARGE_UNIT_SIZE - 4, LARGE_UNIT_SIZE - 4)
-                                    if board_rect.collidepoint(mouse_pos) and player.board[y][x]:
+                            # Check each hex position
+                            for row in range(rows):
+                                for col in range(cols):
+                                    # Calculate hex center (same as in draw_board)
+                                    x_offset = hex_width / 2 if row % 2 == 0 else 0
+                                    center_x = board_x + col * hex_width + x_offset
+                                    center_y = board_y + row * hex_height * 0.75
+
+                                    # Simple distance check for hex click
+                                    distance = math.sqrt(
+                                        (mouse_pos[0] - center_x) ** 2 + (mouse_pos[1] - center_y) ** 2)
+
+                                    if distance <= hex_size * 0.9 and player.board[row][col]:
                                         drag_state = DragState.FROM_BOARD
-                                        drag_unit = player.board[y][x]
-                                        drag_source_index = (x, y)
+                                        drag_unit = player.board[row][col]
+                                        drag_source_index = (col, row)  # Note: (col, row) to match your board indexing
                                         drag_source_type = 'board'
                                         break
                                 if drag_state != DragState.NONE:
                                     break
 
+                        # Check shop for drag start (AFTER bench/board checks)
                         # Check shop for drag start (AFTER bench/board checks)
                         if drag_state == DragState.NONE:
                             shop_slots = GameConstants.SHOP_SLOTS
@@ -986,7 +1088,7 @@ def main():
                             card_gap = 20
                             shop_width = shop_slots * shop_card_size + (shop_slots - 1) * card_gap
                             shop_x = (screen_width - shop_width) // 2
-                            shop_y = screen_height - shop_card_size - 60  # match draw_shop
+                            shop_y = screen_height - 150  # Match your new position!
 
                             for i in range(shop_slots):
                                 shop_rect = pygame.Rect(
@@ -1027,7 +1129,7 @@ def main():
                             card_gap = 20
                             shop_width = shop_slots * shop_card_size + (shop_slots - 1) * card_gap
                             shop_x = (screen_width - shop_width) // 2
-                            shop_y = screen_height - shop_card_size - 60  # match draw_shop
+                            shop_y = screen_height - 150  # Match your new position!
 
                             # Check if mouse is outside shop area (actually dragged away)
                             bg_padding = 50
@@ -1064,7 +1166,7 @@ def main():
                             bench_card_size = (shop_width - (bench_slots - 1) * card_gap) // bench_slots
                             bench_width = bench_slots * bench_card_size + (bench_slots - 1) * card_gap
                             bench_x = (screen_width - bench_width) // 2
-                            bench_y = screen_height - shop_card_size - bench_card_size - 80  # match draw_bench
+                            bench_y = screen_height - shop_card_size - 90  # match draw_bench
 
                             # Check if dropped on board
                             board_dropped = False
@@ -1218,7 +1320,7 @@ def main():
                     bench_card_size = (shop_width - (bench_slots - 1) * card_gap) // bench_slots
                     bench_width = bench_slots * bench_card_size + (bench_slots - 1) * card_gap
                     bench_x = (screen_width - bench_width) // 2
-                    bench_y = screen_height - shop_card_size - bench_card_size - 80  # match draw_bench
+                    bench_y = screen_height - shop_card_size - 90  # match draw_bench
 
                     for i in range(bench_slots):
                         bench_rect = pygame.Rect(
@@ -1299,7 +1401,7 @@ def main():
                     card_gap = 20
                     shop_width = shop_slots * shop_card_size + (shop_slots - 1) * card_gap
                     shop_x = (screen_width - shop_width) // 2
-                    shop_y = screen_height - shop_card_size - 60  # match draw_shop
+                    shop_y = screen_height - 150
 
                     for i in range(shop_slots):
                         shop_rect = pygame.Rect(
@@ -1390,7 +1492,7 @@ def main():
             draw_options_menu(screen, options_buttons, back_button, mouse_pos, fonts, screen_width, screen_height,
                               display_manager)
         elif game_state == GameState.SINGLE_PLAYER:
-            draw_single_player_game(screen, player, game_buttons, mouse_pos, fonts, screen_width, screen_height,
+            draw_single_player_game(screen, player, opponent, game_buttons, mouse_pos, fonts, screen_width, screen_height,
                                     drag_state, drag_unit, drag_pos, drag_source_type)
 
             # Draw Hugo Strange choice UI on top if active
