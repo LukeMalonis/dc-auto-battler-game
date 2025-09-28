@@ -109,7 +109,7 @@ class Player:
             self.create_unit("Harley Quinn", 2, ["Suicide Squad", "Clown Prince of Crime"], 560, 70, png_files),
             self.create_unit("Lex Luthor", 2, ["Legion of Doom", "Bruiser"], 680, 58, png_files),
             # REMOVED Mr. Freeze, Two Face, and Poison Ivy from 2-cost pool!
-            self.create_unit("Rae Al Ghul", 2, ["League of Assassins"], 590, 66, png_files),
+            self.create_unit("Ras al Ghul", 2, ["League of Assassins"], 590, 66, png_files),
         ]
 
         cost_3_units = [
@@ -150,7 +150,7 @@ class Player:
             self.create_unit("Wonder Woman", 4, ["Justice League", "Bruiser"], 950, 82, png_files),
             self.create_unit("Gorilla Grodd", 4, ["Animals", "Bruiser"], 1100, 70, png_files),
             self.create_unit("Deathstroke", 4, ["League of Assassins"], 920, 85, png_files),
-            self.create_unit("Talia Al Ghul", 4, ["League of Assassins"], 880, 78, png_files),
+            self.create_unit("Talia al Ghul", 4, ["League of Assassins"], 880, 78, png_files),
             self.create_unit("Metallo", 4, ["Robots"], 850, 88, png_files),
             self.create_unit("Red Tornado", 4, ["Robots"], 870, 84, png_files),
             self.create_unit("Amazo", 4, ["Robots", "Duelists"], 940, 83, png_files),
