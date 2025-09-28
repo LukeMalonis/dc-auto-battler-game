@@ -894,6 +894,7 @@ def draw_info_panel(screen, player, screen_width, screen_height, fonts):
         y_offset += 30
 
 
+
 def main():
     display_manager = DisplayManager()
     clock = pygame.time.Clock()
@@ -972,6 +973,10 @@ def main():
                     drag_start_pos = mouse_pos
                     # Start dragging
                     if game_state == GameState.SINGLE_PLAYER:
+                        # BLOCK DRAGGING DURING HUGO STRANGE UI
+                        if hugo_strange_choice_active:
+                            break  # Skip all drag handling if UI is active
+
                         # Check bench for drag start
                         bench_slots = GameConstants.BENCH_SLOTS
                         shop_slots = GameConstants.SHOP_SLOTS
@@ -1256,9 +1261,11 @@ def main():
                     elif game_state == GameState.PLAY_MENU or game_state == GameState.OPTIONS_SCREEN:
                         game_state = GameState.MAIN_MENU
                 elif event.key == pygame.K_f and game_state == GameState.SINGLE_PLAYER:
-                    player.buy_xp()
+                    if not hugo_strange_choice_active:  # Add this check
+                        player.buy_xp()
                 elif event.key == pygame.K_d and game_state == GameState.SINGLE_PLAYER:
-                    player.refresh_shop()
+                    if not hugo_strange_choice_active:  # Add this check
+                        player.refresh_shop()
                 elif event.key == pygame.K_s and game_state == GameState.SINGLE_PLAYER and drag_state == DragState.NONE:
                     # Sell unit under mouse (bench only for now)
                     bench_slots = GameConstants.BENCH_SLOTS
@@ -1330,7 +1337,7 @@ def main():
 
             elif game_state == GameState.SINGLE_PLAYER:
                 if hugo_strange_choice_active:
-                    # Handle Hugo Strange choice UI
+                    # Handle Hugo Strange choice UI - BLOCK ALL OTHER ACTIONS
                     for i, button in enumerate(hugo_strange_choice_buttons):
                         if button.is_clicked(mouse_pos, True):
                             hugo_strange_selected_option = hugo_strange_choices[i]
@@ -1338,12 +1345,12 @@ def main():
 
                             replace_hugo_strange_units(player, hugo_strange_selected_option)
                             player.hugo_strange_activated = True
-                            player.hugo_replacement_choice = hugo_strange_selected_option  # <-- Add this line!
+                            player.hugo_replacement_choice = hugo_strange_selected_option
                             hugo_strange_choice_active = False
                             hugo_strange_choice_buttons.clear()
                             break
                 else:
-                    # Normal game logic
+                    # Normal game logic - only run if Hugo Strange UI is NOT active
                     shop_clicked = False
                     shop_slots = GameConstants.SHOP_SLOTS
                     shop_card_size = LARGE_SHOP_UNIT_SIZE
@@ -1392,7 +1399,6 @@ def main():
                         if hugo_placed and not hugo_strange_choice_active:
                             # Activate Hugo Strange choice
                             hugo_strange_choice_active = True
-
                             # Create choice buttons
                             button_width = 550
                             button_height = 70
@@ -1411,8 +1417,8 @@ def main():
                                 )
                                 hugo_strange_choice_buttons.append(button)
 
-                    # Only check other buttons if no shop unit was clicked
-                    if not shop_clicked:
+                    # Only check other buttons if no shop unit was clicked AND Hugo UI is not active
+                    if not shop_clicked and not hugo_strange_choice_active:
                         # Create temporary buttons for Buy XP and Reroll
                         buy_xp_button = Button(30, screen_height - 60, 100, 35, "Buy XP (F)", fonts['button'])
                         reroll_button = Button(140, screen_height - 60, 100, 35, "Reroll (D)", fonts['button'])
