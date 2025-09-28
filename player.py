@@ -85,17 +85,13 @@ class Player:
         cost_1_units = [
             self.create_unit("Martian Manhunter", 1, ["Justice League", "Bruiser"], 700, 45, png_files),
             self.create_unit("Robin", 1, ["Bat Family", "League of Assassins"], 550, 55, png_files),
-            self.create_unit("Amazo", 1, ["Duelists", "Robots"], 600, 50, png_files),
             self.create_unit("Batgirl", 1, ["Bat Family", "N/A"], 500, 60, png_files),
-            self.create_unit("Captain Boomerang", 1, ["Snipers", "Suicide Squad", "Rogues Gallery"], 450, 65, png_files),
             self.create_unit("Krypto", 1, ["Animals", "Kryptonians"], 400, 70, png_files),
             self.create_unit("Killer Croc", 1, ["Suicide Squad", "Bruiser"], 650, 40, png_files),
-            self.create_unit("Captain Cold", 1, ["Rogues Gallery", "Bruiser"], 520, 58, png_files),
-            self.create_unit("Mirror Master", 1, ["Rogues Gallery", "Snipers"], 460, 62, png_files),
-            self.create_unit("Pied Piper", 1, ["Rogues Gallery"], 440, 60, png_files),
-            self.create_unit("Trickster", 1, ["Rogues Gallery"], 430, 65, png_files),
             self.create_unit("Heatwave", 1, ["Rogues Gallery", "Bruiser"], 540, 56, png_files),
-            self.create_unit("Deadshot", 1, ["Suicide Squad", "Snipers"], 470, 68, png_files),
+            self.create_unit("Constantine", 1, ["Sorcerer", "Justice League Dark"], 580, 80, png_files),
+            self.create_unit("Star Sapphire", 1, ["Legion of Doom", "Sorcerer"], 640, 76, png_files),
+            self.create_unit("Pied Piper", 1, ["Rogues Gallery"], 440, 60, png_files),
         ]
 
         cost_2_units = [
@@ -105,28 +101,29 @@ class Player:
             self.create_unit("Power Girl", 2, ["Kryptonians", "Bruiser"], 750, 65, png_files),
             self.create_unit("Cheetah", 2, ["Animals", "Legion of Doom"], 650, 72, png_files),
             self.create_unit("Nightwing", 2, ["Teen Titans", "Form Swapper"], 620, 68, png_files),
-            self.create_unit("Starfire", 2, ["Teen Titans"], 580, 74, png_files),
-            self.create_unit("Harley Quinn", 2, ["Suicide Squad", "Clown Prince of Crime"], 560, 70, png_files),
+            self.create_unit("Starfire", 2, ["Teen Titans", "Bruiser"], 580, 74, png_files),
+            self.create_unit("Harley Quinn", 2, ["Suicide Squad", "Snipers"], 560, 70, png_files),
             self.create_unit("Lex Luthor", 2, ["Legion of Doom", "Bruiser"], 680, 58, png_files),
-            # REMOVED Mr. Freeze, Two Face, and Poison Ivy from 2-cost pool!
-            self.create_unit("Ras al Ghul", 2, ["League of Assassins"], 590, 66, png_files),
+            self.create_unit("Ras al Ghul", 2, ["League of Assassins", "Familial Bond"], 590, 66, png_files),
+            self.create_unit("Red Tornado", 2, ["Robots"], 870, 84, png_files),
+            self.create_unit("Zatanna", 2, ["Sorcerer", "Justice League Dark"], 610, 77, png_files),
+            self.create_unit("Captain Boomerang", 2, ["Snipers", "Suicide Squad", "Rogues Gallery"], 450, 65, png_files),
         ]
 
         cost_3_units = [
             self.create_unit("Weather Wizard", 3, ["Bruiser", "Sorcerer", "Rogues Gallery"], 700, 68, png_files),
+            self.create_unit("Trickster", 3, ["Rogues Gallery"], 430, 65, png_files),
             self.create_unit("Beast Boy", 3, ["Animals", "Teen Titans"], 650, 72, png_files),
             self.create_unit("Batman", 3, ["Justice League", "Bat Family"], 720, 75, png_files),
             self.create_unit("Green Lantern", 3, ["Justice League", "Sorcerer"], 680, 70, png_files),
             self.create_unit("Supergirl", 3, ["Kryptonians", "Snipers"], 740, 78, png_files),
-            # Hugo logic handled below
-            self.create_unit("Raven", 3, ["Teen Titans", "Sorcerer"], 660, 74, png_files),
             self.create_unit("Cyborg", 3, ["Teen Titans", "Robots", "Bruiser"], 780, 65, png_files),
             self.create_unit("Bane", 3, ["Legion of Doom", "Bruiser"], 820, 62, png_files),
-            self.create_unit("Star Sapphire", 3, ["Legion of Doom", "Sorcerer"], 640, 76, png_files),
             self.create_unit("Black Manta", 3, ["Legion of Doom", "Form Swapper"], 690, 71, png_files),
             self.create_unit("Swamp Thing", 3, ["Form Swapper", "Justice League Dark"], 750, 64, png_files),
-            self.create_unit("Constantine", 3, ["Sorcerer", "Justice League Dark"], 580, 80, png_files),
-            self.create_unit("Zatanna", 3, ["Sorcerer", "Justice League Dark"], 610, 77, png_files),
+            self.create_unit("Amazo", 3, ["Robots", "Duelists"], 940, 83, png_files),
+            self.create_unit("Talia al Ghul", 3, ["League of Assassins", "Familial Bond"], 880, 78, png_files),
+            self.create_unit("Detective Chimp", 3, ["Animals", "Justice League Dark"], 700, 70, png_files),
         ]
 
         # Remove Hugo Strange from the pool unless no replacement chosen yet
@@ -149,23 +146,24 @@ class Player:
             self.create_unit("Superman", 4, ["Justice League", "Kryptonians"], 1000, 80, png_files),
             self.create_unit("Wonder Woman", 4, ["Justice League", "Bruiser"], 950, 82, png_files),
             self.create_unit("Gorilla Grodd", 4, ["Animals", "Bruiser"], 1100, 70, png_files),
-            self.create_unit("Deathstroke", 4, ["League of Assassins"], 920, 85, png_files),
-            self.create_unit("Talia al Ghul", 4, ["League of Assassins"], 880, 78, png_files),
-            self.create_unit("Metallo", 4, ["Robots"], 850, 88, png_files),
-            self.create_unit("Red Tornado", 4, ["Robots"], 870, 84, png_files),
-            self.create_unit("Amazo", 4, ["Robots", "Duelists"], 940, 83, png_files),
+            self.create_unit("Deathstroke", 4, ["League of Assassins", "Duelists"], 920, 85, png_files),
+            self.create_unit("Metallo", 4, ["Robots", "Bruiser"], 850, 88, png_files),
+            self.create_unit("Brainiac", 4, ["Robots", "Sorcerer"], 950, 92, png_files),
+            self.create_unit("Raven", 4, ["Teen Titans", "Sorcerer"], 660, 74, png_files),
+            self.create_unit("Deadshot", 4, ["Suicide Squad", "Snipers"], 470, 68, png_files),
+            self.create_unit("Mirror Master", 4, ["Rogues Gallery"], 460, 62, png_files),
         ]
 
         cost_5_units = [
             self.create_unit("Flash", 5, ["Justice League", "Fastest Man Alive"], 900, 95, png_files),
-            self.create_unit("Dr. Fate", 5, ["5 Cost Trait", "Sorcerer"], 850, 90, png_files),
+            self.create_unit("Dr. Fate", 5, ["Nabu's Chosen", "Sorcerer"], 850, 90, png_files),
             self.create_unit("Red Hood", 5, ["Bat Family", "Snipers"], 920, 88, png_files),
             self.create_unit("Solomon Grundy", 5, ["Legion of Doom", "Resurrection"], 1300, 75, png_files),
             self.create_unit("King Shark", 5, ["Animals", "Lurking In The Waters"], 1250, 80, png_files),
             self.create_unit("Darkseid", 5, ["Threat"], 1400, 85, png_files),
-            self.create_unit("Brainiac", 5, ["Robots", "Threat"], 950, 92, png_files),
             self.create_unit("Zoom", 5, ["Threat"], 880, 98, png_files),
-            self.create_unit("The Question", 5, ["I Have A Question", "Threat"], 800, 95, png_files),
+            self.create_unit("The Question", 5, ["I Have A Question", "Duelists"], 800, 95, png_files),
+            self.create_unit("Captain Cold", 5, ["5 Cost Trait", "Rogues Gallery"], 520, 58, png_files),
         ]
 
         # Shop odds table for each level: [1, 2, 3, 4, 5]-cost units (percentages)

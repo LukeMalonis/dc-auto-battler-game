@@ -92,8 +92,8 @@ TRAIT_INFO = {
     },
     "Suicide Squad": {
         "thresholds": [2, 4],
-        "description": "Suicide Squad members have explosive attacks and death effects",
-        "bonuses": ["2: Explosive damage on death", "4: Teamwide attack bonus"]
+        "description": "Suicide Squad members have explosive attacks",
+        "bonuses": ["2: Abilities now deal explosive aoe damage", "4: Bonus damage to all suicide squad members"]
     },
     "Legion of Doom": {
         "thresholds": [2, 4, 6, 8],
@@ -146,9 +146,9 @@ TRAIT_INFO = {
         "bonuses": ["2: Dark magic attacks", "4: Supernatural mastery"]
     },
     "Duelists": {
-        "thresholds": [2, 4, 6],
+        "thresholds": [2, 4],
         "description": "Duelists gain attack speed with each attack, becoming faster as combat continues",
-        "bonuses": ["2: 10% stacking attack speed", "4: 20% stacking attack speed", "6: 35% stacking attack speed"]
+        "bonuses": ["2: 5% stacking attack speed on hi", "4: 10% stacking attack speed on hit"]
     },
     "Fastest Man Alive": {
         "thresholds": [1],
@@ -194,6 +194,17 @@ TRAIT_INFO = {
         "thresholds": [],
         "description": "No additional trait",
         "bonuses": []
+    },
+    "Nabu's Chosen": {
+        "thresholds": [1],
+        "description": "While your team has more members Dr. Fate heals, if you have more Dr. Fate deals massive damage",
+        "bonuses": ["1: Either heal or deal damage depending on board state"]
+    },
+    "Familial Bond": {
+        "thresholds": [2],
+        "description": "Increasing familial bond gives your team significantly more damage",
+        "bonuses": "2: When you play both ghul's on your board, give your team +30% damage"
+
     }
 }
 
