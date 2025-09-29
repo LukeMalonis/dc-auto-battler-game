@@ -157,7 +157,7 @@ class Player:
             self.create_unit("Deadshot", 4, ["Suicide Squad", "Snipers"], 470, 68, png_files),
             self.create_unit("Trickster", 4, ["Rogues Gallery", "Tech"], 430, 65, png_files),
             self.create_unit("Harley Quinn", 4, ["Suicide Squad", "Mad Love"], 560, 70, png_files),
-            self.create_unit("Reverse FLash", 4, ["Duelists", "Fortune"], 880, 98, png_files),
+            self.create_unit("Zoom", 4, ["Duelists", "Fortune"], 880, 98, png_files),
             self.create_unit("Detective Chimp", 4, ["Animals", "Justice League Dark"], 700, 70, png_files),
             self.create_unit("Abra Kadabra", 4, ["Tech", "Fortune"], 500, 70, png_files),
 

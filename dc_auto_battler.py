@@ -425,52 +425,147 @@ def draw_unit_card(surface, unit, rect, show_details=False, is_shop_unit=False):
 
 
 def draw_hugo_strange_choice(screen, choices, buttons, mouse_pos, screen_width, screen_height):
-    """Draw the Hugo Strange unit choice overlay"""
+    """Draw the Hugo Strange unit choice overlay with enhanced visuals"""
     # Semi-transparent overlay covering the entire screen
     overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
-    overlay.fill((0, 0, 0, 180))  # Dark semi-transparent
+    overlay.fill((0, 0, 0, 200))  # Darker semi-transparent
     screen.blit(overlay, (0, 0))
 
-    # Main choice panel
-    panel_width = 700
-    panel_height = 500
+    # Main choice panel - larger and more prominent
+    panel_width = 900
+    panel_height = 700
     panel_x = (screen_width - panel_width) // 2
     panel_y = (screen_height - panel_height) // 2
 
-    # Panel background
-    pygame.draw.rect(screen, (40, 40, 60), (panel_x, panel_y, panel_width, panel_height), border_radius=15)
-    pygame.draw.rect(screen, Colors.GOLD_COLOR, (panel_x, panel_y, panel_width, panel_height), 4, border_radius=15)
+    # Panel background with fancy border
+    pygame.draw.rect(screen, (30, 30, 50), (panel_x, panel_y, panel_width, panel_height), border_radius=20)
+    pygame.draw.rect(screen, Colors.GOLD_COLOR, (panel_x, panel_y, panel_width, panel_height), 6, border_radius=20)
 
-    # Title
-    font_title = pygame.font.SysFont('arial', 32, bold=True)
+    # Inner glow effect
+    pygame.draw.rect(screen, (70, 70, 100), (panel_x + 10, panel_y + 10, panel_width - 20, panel_height - 20),
+                     border_radius=15)
+
+    # Title with Hugo Strange theme
+    font_title = pygame.font.SysFont('arial', 36, bold=True)
     title_text = font_title.render("HUGO STRANGE: CREATION SELECTION", True, Colors.GOLD_COLOR)
-    title_rect = title_text.get_rect(centerx=panel_x + panel_width // 2, y=panel_y + 30)
+    title_rect = title_text.get_rect(centerx=panel_x + panel_width // 2, y=panel_y + 40)
     screen.blit(title_text, title_rect)
 
+    # Hugo Strange character display at top
+    hugo_text = pygame.font.SysFont('arial', 24, italic=True)
+    hugo_desc = hugo_text.render("Hugo Strange has discovered how to create powerful beings", True, (200, 200, 255))
+    hugo_rect = hugo_desc.get_rect(centerx=panel_x + panel_width // 2, y=panel_y + 90)
+    screen.blit(hugo_desc, hugo_rect)
+
     # Description
-    font_desc = pygame.font.SysFont('arial', 18)
+    font_desc = pygame.font.SysFont('arial', 20)
     desc_lines = [
-        "Hugo Strange has discovered how to create powerful beings.",
         "Choose one creation to replace Hugo Strange and appear in your shop:",
         "(This choice is permanent for the rest of the game)"
     ]
 
     for i, line in enumerate(desc_lines):
         desc_text = font_desc.render(line, True, Colors.BUTTON_TEXT)
-        desc_rect = desc_text.get_rect(centerx=panel_x + panel_width // 2, y=panel_y + 90 + i * 30)
+        desc_rect = desc_text.get_rect(centerx=panel_x + panel_width // 2, y=panel_y + 130 + i * 35)
         screen.blit(desc_text, desc_rect)
 
-    # Draw choice buttons
-    for button in buttons:
-        button.check_hover(mouse_pos)
-        button.draw(screen)
+    # Draw character cards with PNGs - these will be the clickable buttons
+    card_width = 200
+    card_height = 280
+    card_spacing = 50
+    total_cards_width = (card_width * 3) + (card_spacing * 2)
+    cards_start_x = panel_x + (panel_width - total_cards_width) // 2
+    cards_y = panel_y + 200
+
+    # Character data with PNG names and roles
+    character_data = {
+        "Mr. Freeze": {"role": "Magic Tank", "png": "Mr._Freeze.png"},
+        "Poison Ivy": {"role": "Magic Caster", "png": "Poison_Ivy.png"},
+        "Two Face": {"role": "ADC", "png": "Two_Face.png"}
+    }
+
+    # Clear the old buttons list and create new ones based on card positions
+    buttons.clear()
+
+    for i, choice in enumerate(choices):
+        card_x = cards_start_x + i * (card_width + card_spacing)
+        card_rect = pygame.Rect(card_x, cards_y, card_width, card_height)
+
+        # Create button for this card
+        button = Button(card_x, cards_y, card_width, card_height, "", pygame.font.SysFont('arial', 1))
+        buttons.append(button)
+
+        # Check if mouse is hovering over this card
+        is_hovered = card_rect.collidepoint(mouse_pos)
+
+        # Draw card background with hover effect
+        card_color = (70, 70, 110) if is_hovered else (50, 50, 80)
+        border_color = (255, 255, 100) if is_hovered else (100, 150, 255)
+
+        pygame.draw.rect(screen, card_color, card_rect, border_radius=12)
+        pygame.draw.rect(screen, border_color, card_rect, 3, border_radius=12)
+
+        # Add hover glow effect
+        if is_hovered:
+            glow_rect = pygame.Rect(card_x - 5, cards_y - 5, card_width + 10, card_height + 10)
+            pygame.draw.rect(screen, (255, 255, 100, 50), glow_rect, border_radius=15)
+
+        # Try to load and display PNG
+        png_name = character_data[choice]["png"]
+        png_path = f"assets/{png_name}"
+        try:
+            if os.path.exists(png_path):
+                png_image = pygame.image.load(png_path).convert_alpha()
+                # Scale PNG to fit card
+                png_rect = png_image.get_rect()
+                scale_factor = min((card_width - 20) / png_rect.width, (card_height - 80) / png_rect.height)
+                new_size = (int(png_rect.width * scale_factor), int(png_rect.height * scale_factor))
+                scaled_png = pygame.transform.smoothscale(png_image, new_size)
+                png_pos = (card_x + (card_width - new_size[0]) // 2, cards_y + 10)
+                screen.blit(scaled_png, png_pos)
+            else:
+                # Fallback: draw placeholder
+                placeholder_rect = pygame.Rect(card_x + 10, cards_y + 10, card_width - 20, card_height - 90)
+                pygame.draw.rect(screen, (40, 40, 60), placeholder_rect, border_radius=8)
+                font_placeholder = pygame.font.SysFont('arial', 16)
+                placeholder_text = font_placeholder.render("No Image", True, Colors.BUTTON_TEXT)
+                placeholder_text_rect = placeholder_text.get_rect(center=placeholder_rect.center)
+                screen.blit(placeholder_text, placeholder_text_rect)
+        except Exception as e:
+            print(f"Error loading image for {choice}: {e}")
+
+        # Draw character name
+        font_name = pygame.font.SysFont('arial', 20, bold=True)
+        name_text = font_name.render(choice, True, Colors.BUTTON_TEXT)
+        name_rect = name_text.get_rect(centerx=card_x + card_width // 2, y=cards_y + card_height - 60)
+        screen.blit(name_text, name_rect)
+
+        # Draw character role instead of stats
+        font_role = pygame.font.SysFont('arial', 16, bold=True)
+        role = character_data[choice]["role"]
+        role_text = font_role.render(role, True, (255, 215, 0))  # Gold color for roles
+
+        role_rect = role_text.get_rect(centerx=card_x + card_width // 2, y=cards_y + card_height - 35)
+        screen.blit(role_text, role_rect)
+
+    # Instruction text below cards
+    font_instruction = pygame.font.SysFont('arial', 18)
+    instruction_text = font_instruction.render("Click on a character to select", True, (200, 255, 200))
+    instruction_rect = instruction_text.get_rect(centerx=panel_x + panel_width // 2, y=cards_y + card_height + 30)
+    screen.blit(instruction_text, instruction_rect)
 
     # Warning text at bottom
-    font_warning = pygame.font.SysFont('arial', 14)
+    font_warning = pygame.font.SysFont('arial', 16)
     warning_text = font_warning.render("All Hugo Strange units will be transformed into your selection", True,
-                                       (255, 100, 100))
-    warning_rect = warning_text.get_rect(centerx=panel_x + panel_width // 2, y=panel_y + panel_height - 40)
+                                       (255, 150, 150))
+    warning_rect = warning_text.get_rect(centerx=panel_x + panel_width // 2, y=panel_y + panel_height - 50)
     screen.blit(warning_text, warning_rect)
+
+    # Flavor text
+    font_flavor = pygame.font.SysFont('arial', 14, italic=True)
+    flavor_text = font_flavor.render("The power of creation is now in your hands...", True, (200, 200, 255))
+    flavor_rect = flavor_text.get_rect(centerx=panel_x + panel_width // 2, y=panel_y + panel_height - 25)
+    screen.blit(flavor_text, flavor_rect)
 
 
 def replace_hugo_strange_units(player, replacement_name):
@@ -926,7 +1021,6 @@ def draw_info_panel(screen, player, screen_width, screen_height, fonts):
         y_offset += 30
 
 
-
 def main():
     display_manager = DisplayManager()
     clock = pygame.time.Clock()
@@ -988,6 +1082,11 @@ def main():
     # Smaller back and end turn buttons
     back_button = Button(30, 30, 80, 30, "BACK", menu_font)
     end_turn_button = Button(screen_width // 2 - 50, 15, 100, 30, "End Turn", menu_font)
+
+    # Developer button
+    dev_font = pygame.font.SysFont('arial', 14)
+    dev_gold_button = Button(250, screen_height - 60, 120, 35, "DEV: +10 Gold", dev_font)
+
     game_buttons = [end_turn_button, back_button]
 
     running = True
@@ -1174,21 +1273,8 @@ def main():
                                                             and not hugo_strange_choice_active
                                                             and not hasattr(player, 'hugo_strange_activated')):
                                                         hugo_strange_choice_active = True
-                                                        button_width = 550
-                                                        button_height = 70
-                                                        start_y = (screen_height - 500) // 2 + 150
+                                                        # Clear any old buttons - new ones will be created in draw_hugo_strange_choice
                                                         hugo_strange_choice_buttons.clear()
-                                                        for i, choice in enumerate(hugo_strange_choices):
-                                                            button_y = start_y + i * 90
-                                                            button = Button(
-                                                                (screen_width - button_width) // 2,
-                                                                button_y,
-                                                                button_width,
-                                                                button_height,
-                                                                f"SELECT: {choice}",
-                                                                pygame.font.SysFont('arial', 20, bold=True)
-                                                            )
-                                                            hugo_strange_choice_buttons.append(button)
                                             else:
                                                 # Swap bench unit with board unit
                                                 player.board[y][x] = drag_unit
@@ -1199,21 +1285,8 @@ def main():
                                                         and not hugo_strange_choice_active
                                                         and not hasattr(player, 'hugo_strange_activated')):
                                                     hugo_strange_choice_active = True
-                                                    button_width = 550
-                                                    button_height = 70
-                                                    start_y = (screen_height - 500) // 2 + 150
+                                                    # Clear any old buttons - new ones will be created in draw_hugo_strange_choice
                                                     hugo_strange_choice_buttons.clear()
-                                                    for i, choice in enumerate(hugo_strange_choices):
-                                                        button_y = start_y + i * 90
-                                                        button = Button(
-                                                            (screen_width - button_width) // 2,
-                                                            button_y,
-                                                            button_width,
-                                                            button_height,
-                                                            f"SELECT: {choice}",
-                                                            pygame.font.SysFont('arial', 20, bold=True)
-                                                        )
-                                                        hugo_strange_choice_buttons.append(button)
                                         elif drag_source_type == 'board':
                                             # Move from board to different board position (swap)
                                             source_x, source_y = drag_source_index
@@ -1228,21 +1301,8 @@ def main():
                                                     and not hugo_strange_choice_active
                                                     and not hasattr(player, 'hugo_strange_activated')):
                                                 hugo_strange_choice_active = True
-                                                button_width = 550
-                                                button_height = 70
-                                                start_y = (screen_height - 500) // 2 + 150
+                                                # Clear any old buttons - new ones will be created in draw_hugo_strange_choice
                                                 hugo_strange_choice_buttons.clear()
-                                                for i, choice in enumerate(hugo_strange_choices):
-                                                    button_y = start_y + i * 90
-                                                    button = Button(
-                                                        (screen_width - button_width) // 2,
-                                                        button_y,
-                                                        button_width,
-                                                        button_height,
-                                                        f"SELECT: {choice}",
-                                                        pygame.font.SysFont('arial', 20, bold=True)
-                                                    )
-                                                    hugo_strange_choice_buttons.append(button)
                                         board_dropped = True
                                         break
                                 if board_dropped:
@@ -1368,8 +1428,12 @@ def main():
                     game_state = GameState.MAIN_MENU
 
             elif game_state == GameState.SINGLE_PLAYER:
-                if hugo_strange_choice_active:
-                    # Handle Hugo Strange choice UI - BLOCK ALL OTHER ACTIONS
+                # Check developer button FIRST
+                if dev_gold_button.is_clicked(mouse_pos, True):
+                    player.gold += 10
+                    print(f"DEV: Added 10 gold. Total: {player.gold}")
+                elif hugo_strange_choice_active:
+                    # Handle Hugo Strange choice UI - check if any character card was clicked
                     for i, button in enumerate(hugo_strange_choice_buttons):
                         if button.is_clicked(mouse_pos, True):
                             hugo_strange_selected_option = hugo_strange_choices[i]
@@ -1431,23 +1495,8 @@ def main():
                         if hugo_placed and not hugo_strange_choice_active:
                             # Activate Hugo Strange choice
                             hugo_strange_choice_active = True
-                            # Create choice buttons
-                            button_width = 550
-                            button_height = 70
-                            start_y = (screen_height - 500) // 2 + 150
-
+                            # Clear any old buttons - new ones will be created in draw_hugo_strange_choice
                             hugo_strange_choice_buttons.clear()
-                            for i, choice in enumerate(hugo_strange_choices):
-                                button_y = start_y + i * 90
-                                button = Button(
-                                    (screen_width - button_width) // 2,
-                                    button_y,
-                                    button_width,
-                                    button_height,
-                                    f"SELECT: {choice}",
-                                    pygame.font.SysFont('arial', 20, bold=True)
-                                )
-                                hugo_strange_choice_buttons.append(button)
 
                     # Only check other buttons if no shop unit was clicked AND Hugo UI is not active
                     if not shop_clicked and not hugo_strange_choice_active:
@@ -1479,8 +1528,13 @@ def main():
             draw_options_menu(screen, options_buttons, back_button, mouse_pos, fonts, screen_width, screen_height,
                               display_manager)
         elif game_state == GameState.SINGLE_PLAYER:
-            draw_single_player_game(screen, player, opponent, game_buttons, mouse_pos, fonts, screen_width, screen_height,
+            draw_single_player_game(screen, player, opponent, game_buttons, mouse_pos, fonts, screen_width,
+                                    screen_height,
                                     drag_state, drag_unit, drag_pos, drag_source_type)
+
+            # Draw developer button
+            dev_gold_button.check_hover(mouse_pos)
+            dev_gold_button.draw(screen)
 
             # Draw Hugo Strange choice UI on top if active
             if hugo_strange_choice_active:
