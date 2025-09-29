@@ -60,9 +60,9 @@ LARGE_BENCH_UNIT_SIZE = 200
 # Define trait thresholds and descriptions
 TRAIT_INFO = {
     "Bat Family": {
-        "thresholds": [3, 5],
+        "thresholds": [3, 4, 5],
         "description": "Bat Family units gain bonus attack damage and critical strike chance",
-        "bonuses": ["3: +30% Attack Damage", "5: +50% Attack Damage & 25% Crit Chance"]
+        "bonuses": ["3: +10% Attack Damage for every 3 star bat family member", "4: +10% Crit Chance per 3 star", "5: +10% damage amp per 3 star"]
     },
     "Justice League": {
         "thresholds": [2, 4, 6, 8],
@@ -76,14 +76,14 @@ TRAIT_INFO = {
         "bonuses": ["3: +2 Gold after losing streak", "5: +5 Gold & Bonus Damage", "7: +8 Gold & Chaos Auras"]
     },
     "Teen Titans": {
-        "thresholds": [3, 5],
+        "thresholds": [2, 4, 6],
         "description": "Teen Titans work together with combo attacks and synergy bonuses",
-        "bonuses": ["3: Combo attacks trigger", "5: Ultimate team attack unlocked"]
+        "bonuses": ["2: Whole team gets 10% damage amp", "4: 20% damage amp to whole board", "6: Teen titans gain a bonus ability and 30% damage amp to whole board"]
     },
     "Threat": {
         "thresholds": [1],
-        "description": "Threat units are powerful solo carries that dominate the battlefield",
-        "bonuses": ["1: Massive solo power boost"]
+        "description": "Darkseid invades the battlefield",
+        "bonuses": ["1: Massive solo power boost to Darkseid"]
     },
     "Mind Games": {
         "thresholds": [1],
@@ -96,29 +96,24 @@ TRAIT_INFO = {
         "bonuses": ["2: Abilities now deal explosive aoe damage", "4: Bonus damage to all suicide squad members"]
     },
     "Legion of Doom": {
-        "thresholds": [2, 4, 6, 8],
+        "thresholds": [2, 4, 6],
         "description": "Legion of Doom members grow stronger together with dark powers",
-        "bonuses": ["2: +10% Damage", "4: +25% Damage & Health", "6: +40% Stats", "8: Ultimate Evil Unleashed"]
+        "bonuses": ["2: +10% Damage", "4: +25% Damage & Health", "6: +40% damage and health"]
     },
     "Kryptonians": {
-        "thresholds": [2, 4],
+        "thresholds": [3, 4, 5],
         "description": "Kryptonians draw power from the sun, gaining massive stat bonuses",
-        "bonuses": ["2: +50% Health", "4: +100% Health & Damage"]
+        "bonuses": ["3: +30% Health", "4: and 10% damage amp", "5: and 30 protections"]
     },
     "League of Assassins": {
         "thresholds": [2, 4],
         "description": "Assassins strike from the shadows with lethal precision",
-        "bonuses": ["2: Execute low health targets", "4: Global execute threshold"]
+        "bonuses": ["2: Assassins execute enemies under 10%", "4: Execute under 15% + 10% damage amp to all assassins"]
     },
     "Bruiser": {
         "thresholds": [2, 4, 6],
         "description": "Bruisers are tough frontliners who gain bonus health and damage reduction",
         "bonuses": ["2: +200 Health", "4: +500 Health & 20% Damage Reduction", "6: +1000 Health & 40% Damage Reduction"]
-    },
-    "Form Swapper": {
-        "thresholds": [2, 4],
-        "description": "Form Swappers adapt to battle conditions, changing from tank to damage roles",
-        "bonuses": ["2: Adaptive form switching", "4: Perfect form mastery"]
     },
     "Snipers": {
         "thresholds": [2, 4, 6],
@@ -126,9 +121,9 @@ TRAIT_INFO = {
         "bonuses": ["2: +2 Range & 25% Damage", "4: +3 Range & 50% Damage", "6: Global Range & 100% Damage"]
     },
     "Robots": {
-        "thresholds": [2, 4],
+        "thresholds": [2, 4, 6],
         "description": "Robots evolve during combat, gaining permanent stat improvements",
-        "bonuses": ["2: Evolve each round", "4: Ultimate evolution unlocked"]
+        "bonuses": ["2: Evolve each round", "4: +10% Damage for all robots", "6: Ultimate evolution unlocked"]
     },
     "Animals": {
         "thresholds": [2, 4, 6],
@@ -146,19 +141,19 @@ TRAIT_INFO = {
         "bonuses": ["2: Dark magic attacks", "4: Supernatural mastery"]
     },
     "Duelists": {
-        "thresholds": [2, 4],
+        "thresholds": [2, 4, 6],
         "description": "Duelists gain attack speed with each attack, becoming faster as combat continues",
-        "bonuses": ["2: 5% stacking attack speed on hi", "4: 10% stacking attack speed on hit"]
+        "bonuses": ["2: 5% stacking attack speed on hi", "4: 10% stacking attack speed on hit", "+25% damage amp"]
     },
     "Fastest Man Alive": {
         "thresholds": [1],
         "description": "The Flash moves and attacks at impossible speeds",
-        "bonuses": ["1: Infinite speed scaling"]
+        "bonuses": ["1: Infinite attack speed scaling and +3% attack speed per auto attack"]
     },
-    "5 Cost Trait": {
+    "Lets Put You On Ice": {
         "thresholds": [1],
-        "description": "5-cost units have unique game-changing abilities",
-        "bonuses": ["1: Ultimate ability unlocked"]
+        "description": "Captain Cold freezes over the entire battlefield",
+        "bonuses": ["1: All enemies slowed by 15%"]
     },
     "Resurrection": {
         "thresholds": [1],
@@ -205,8 +200,24 @@ TRAIT_INFO = {
         "description": "Increasing familial bond gives your team significantly more damage",
         "bonuses": "2: When you play both ghul's on your board, give your team +30% damage"
 
+    },
+    "Mad Love": {
+        "thresholds": [2],
+        "description": "The Crime loving duo of destruction give each other boosts",
+        "bonuses": "2: Harley heals joker for damage done, and joker gives harley a percentage of his protections"
+    },
+    "Tech": {
+        "thresholds": [2, 4],
+        "description": "Tech",
+        "bonuses": "something"
+    },
+    "Monsters": {
+        "thresholds": [2, 3, 4],
+        "description": "Monsters",
+        "bonuses": "something"
     }
 }
+
 
 
 def get_trait_display(trait_name, current_count):
