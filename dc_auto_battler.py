@@ -204,17 +204,27 @@ TRAIT_INFO = {
     "Mad Love": {
         "thresholds": [2],
         "description": "The Crime loving duo of destruction give each other boosts",
-        "bonuses": "2: Harley heals joker for damage done, and joker gives harley a percentage of his protections"
+        "bonuses": ["2: Harley heals joker for damage done, and joker gives harley a percentage of his protections"]
     },
     "Tech": {
         "thresholds": [2, 4],
         "description": "Tech",
-        "bonuses": "something"
+        "bonuses": ["something"]
     },
     "Monsters": {
         "thresholds": [2, 3, 4],
-        "description": "Monsters",
-        "bonuses": "something"
+        "description": "Monsters gain health and attack damage for every monster on board",
+        "bonuses": ["2: 20% health and AD", "3: 25% health and AD", "4: 30% health and AD"]
+    },
+    "Rivals": {
+        "thresholds": [2],
+        "description": "Rivals of the ocean motivate each other to improve",
+        "bonuses": ["2: Every round both are placed, give each other +10 AD and AP"]
+    },
+    "Fortune": {
+        "thresholds": [2, 4, 6],
+        "description": "Every kill gotten has a chance to give gold and damage amp",
+        "bonuses": ["2: 15% for 1 gold and 1% damage amp", "4: 25%", "6: 40%"]
     }
 }
 
