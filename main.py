@@ -1,27 +1,22 @@
-# main.py - Replit version that shows ACTUAL PyGame GUI
-import pygame
-import sys
+# main.py - Replit PyGame version
 import os
+import pygame
 
-# Add current directory to path so imports work
-sys.path.append(os.getcwd())
+# Set up PyGame for Replit environment
+os.environ['SDL_VIDEODRIVER'] = 'x11'
+os.environ['DISPLAY'] = ':0'
 
+# Initialize PyGame
+pygame.init()
+
+print("🎮 Starting DC Auto Battler...")
+print("If you see a PyGame window, it's working!")
+
+# Import and run your game
 try:
-    # Import your exact game
     from dc_auto_battler import main
-
-    print("🎮 Starting DC Auto Battler with PyGame GUI...")
-    print("The game window should appear in the Replit output pane!")
-
-    # Run your EXACT game
-    if __name__ == "__main__":
-        main()
-
-except ImportError as e:
-    print(f"❌ Import error: {e}")
-    print("Make sure all your game files are in the repository!")
+    main()
 except Exception as e:
-    print(f"❌ Game error: {e}")
+    print(f"Error: {e}")
     import traceback
-
     traceback.print_exc()
